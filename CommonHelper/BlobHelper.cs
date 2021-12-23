@@ -28,5 +28,18 @@ namespace CommonHelper
             }
             return await Task.Run(() => _documentPaths);
         }
+
+
+        public async Task<string> UploadDocument(IFormFile document, IHostingEnvironment _hostingEnvironment)
+        {
+            var guidId = Guid.NewGuid();
+            var upload = Path.Combine(_hostingEnvironment.WebRootPath, "Files//");
+            using (var fs = new FileStream(Path.Combine(upload, guidId.ToString() + "_" + document.FileName), FileMode.Create))
+            {
+                document.CopyTo(fs);
+            }
+
+            return await Task.Run(() => "/Files/" + guidId.ToString() + "_" + document.FileName);
+        }
     }
 }

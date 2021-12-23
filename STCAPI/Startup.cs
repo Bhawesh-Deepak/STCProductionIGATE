@@ -14,7 +14,9 @@ using STCAPI.Infrastructure.Implementation.GenericImplementation;
 using STCAPI.Infrastructure.Implementation.STCVATFormImplemetation;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace STCAPI
@@ -37,6 +39,10 @@ namespace STCAPI
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "STCAPI", Version = "v1" });
                 c.DescribeAllEnumsAsStrings();
+
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
             });
             services.AddAuthenticationToken(Configuration);
 

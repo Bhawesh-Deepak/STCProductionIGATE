@@ -1,10 +1,6 @@
 ﻿using STCAPI.Core.Entities.Common;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace STCAPI.Core.Entities.VATDetailUpload
 {
@@ -13,5 +9,11 @@ namespace STCAPI.Core.Entities.VATDetailUpload
     {
         public string InvoiceName { get; set; }
         public string Attachments { get; set; }
+        public string Period { get; set; }
+        public string InputVatFilePath { get; set; }
+        public string OutputVatFilePath { get; set; }
+        public string TrialBalanceVatFilePath { get; set; }
+        public string ReturnVatFilePath { get; set; }
+
     }
 }

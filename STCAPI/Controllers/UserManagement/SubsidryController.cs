@@ -123,5 +123,23 @@ namespace STCAPI.Controllers.UserManagement
             var response = await _ISubsidryUserMapping.GetAllEntities(x => x.IsActive && !x.IsDeleted);
             return Ok(response);
         }
+        [HttpPost]
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        public async Task<IActionResult> UpdateSubsidryMapping(SubsidryUserMapping model)
+        {
+            var deleteModel = await _ISubsidryUserMapping.GetAllEntities(x => x.Id == model.Id);
+
+            deleteModel.TEntities.ToList().ForEach(data =>
+            {
+                data.IsActive = false;
+                data.IsDeleted = true;
+            });
+
+            var deleteResponse = await _ISubsidryUserMapping.DeleteEntity(deleteModel.TEntities.ToArray());
+            model.Id = 0;
+            var response = await _ISubsidryUserMapping.CreateEntity(new List<SubsidryUserMapping>() { model }.ToArray());
+            return Ok(response);
+        }
     }
 }

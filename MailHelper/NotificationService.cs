@@ -33,6 +33,7 @@ namespace MailHelper
 
                 MailboxAddress to = new MailboxAddress("User",
                 "BhaweshDeepak@yahoo.com");
+
                 List<MailboxAddress> toMailAddress = new List<MailboxAddress>();
                 toEmailIds.ForEach(item =>
                 {
@@ -57,7 +58,7 @@ namespace MailHelper
                     client.Connect(_configuration.GetSection("EmailNotification:SMTPServer").Value,
                         Convert.ToInt32(_configuration.GetSection("EmailNotification:SMTPPort").Value), SecureSocketOptions.StartTls);
 
-                    client.Authenticate("itbasserahbasserah@gmail.com", "vi@pra91");
+                    client.Authenticate("stcvat1@gmail.com", "vi@pra91");
 
                     client.Send(message);
                     isMailSend = true;

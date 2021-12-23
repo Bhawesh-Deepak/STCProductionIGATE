@@ -58,55 +58,87 @@ namespace STCAPI.Controllers.ExcelReader
 
                 _logger.LogInformation("File attachment has been done", DateTime.Now);
 
+                #region UploadFile In Folder
 
                 var uploadFileDetails = await new BlobHelper().UploadDocument(invoiceFiles, _IHostingEnviroment);
 
-                var uploadInvoiceId = await CreateUploadInvocie(model, attachmentList);
+                var inputFilePath = await new BlobHelper().UploadDocument(model.InvoiceExcelFile, _IHostingEnviroment);
 
-                switch (model.ExcelType)
+                var outputFilePath = await new BlobHelper().UploadDocument(model.InvoiceOutpuExcel, _IHostingEnviroment);
+
+                var trialFilePath = await new BlobHelper().UploadDocument(model.InvoiceTrialExcel, _IHostingEnviroment);
+
+                var returnFilePath = await new BlobHelper().UploadDocument(model.InvoiceReturnExcel, _IHostingEnviroment);
+
+
+                #endregion
+
+                var uploadInvoiceId = await CreateUploadInvocie(model, attachmentList, inputFilePath, outputFilePath, returnFilePath, trialFilePath);
+
+                #region Invoice Input File
+                //Validate and Insert the Invoice Excel file
+                var inputVATModel = await Task.Run(() => InputVATExcelData(model.InvoiceExcelFile));
+                var dbModels = await ConvertInputModelToDBModel(inputVATModel);
+                dbModels.ForEach(data =>
                 {
-                    case VATExcelType.InputDataFile:
-                        var inputVATModel = await Task.Run(() => InputVATExcelData(model.InvoiceExcelFile));
-                        var dbModels = await ConvertInputModelToDBModel(inputVATModel);
-                        dbModels.ForEach(data =>
+                    data.UploadInvoiceDetailId = uploadInvoiceId;
+                });
+                var inputDataFileResponse = await CreateInputVATDetail(dbModels, model.UserName);
+
+                #endregion
+
+                #region Invoice OutPutFile
+
+                var outputVATModel = await Task.Run(() => OutputVATExcelFle(model.InvoiceOutpuExcel));
+                var dtoModel = await DTOOutModelToOutputDataModel(outputVATModel);
+                dtoModel.ForEach(data =>
+                {
+                    data.UploadInvoiceDetailId = uploadInvoiceId;
+                });
+                var dbResponse = await CreateSTCOutputModel(dtoModel, model.UserName);
+                #endregion
+
+                #region InvoiceReturnFile
+
+                var returnModel = await Task.Run(() => VATReturnExcelData(model.InvoiceReturnExcel));
+                //var dbReturnModels = await DTOConvertModelTODBObject(returnModel);
+                List<VATReturnModel> returnModels = new List<VATReturnModel>();
+
+                returnModel.ForEach(data =>
+                {
+                    returnModels.Add(
+
+                        new VATReturnModel()
                         {
-                            data.UploadInvoiceDetailId = uploadInvoiceId;
+                            CreatedBy = model.UserName,
+                            SARAdjustment = Convert.ToDecimal(data.SARAdjustment == String.Empty ? 0 : data.SARAdjustment),
+                            SARAmount = Convert.ToDecimal(data.SARAmount == String.Empty ? 0 : data.SARAmount),
+                            UploadInvoiceDetailId = uploadInvoiceId,
+                            SARVATAmount = Convert.ToDecimal(data.SARVATAmount == String.Empty ? 0 : data.SARVATAmount),
+                            VATReturnDetail = data.VATReturnDetail ?? String.Empty,
+                            VATType = data.VATType ?? String.Empty,
+                            VATTypeId = Convert.ToDecimal(data.VATTypeId ?? "0"),
+                            VATTypeName = data.VATTypeName ?? String.Empty,
+                            CreatedDate = DateTime.Now
                         });
-                        var inputDataFileResponse = await CreateInputVATDetail(dbModels, model.UserName);
-                        break;
+                });
 
-                    case VATExcelType.OutputDataFile:
-                        var outputVATModel = await Task.Run(() => OutputVATExcelFle(model.InvoiceExcelFile));
-                        var dtoModel = await DTOOutModelToOutputDataModel(outputVATModel);
-                        dtoModel.ForEach(data =>
-                        {
-                            data.UploadInvoiceDetailId = uploadInvoiceId;
-                        });
 
-                        var dbResponse = await CreateSTCOutputModel(dtoModel, model.UserName);
-                        break;
+                var dbReturnResponse = await CreateVATReturnData(returnModels, model.UserName);
+                #endregion
 
-                    case VATExcelType.VATReturnDataFile:
-                        var returnModel = await GetVATReturnDetail(model.InvoiceExcelFile);
-                        var dbReturnModels = await DTOConvertModelTODBObject(returnModel);
-                        dbReturnModels.Item2.ForEach(data =>
-                        {
-                            data.UploadInvoiceDetailId = uploadInvoiceId;
-                        });
+                #region TrialBalanceFile
 
-                        var dbReturnResponse = await CreateVATReturnData(dbReturnModels.Item2, model.UserName);
-                        break;
+                var balanceDataModel = await Task.Run(() => VATTrialBalance(model.InvoiceTrialExcel));
+                var trialDBModels = await ConvertVATTrialBalanceModelToDBModel(balanceDataModel);
+                trialDBModels.ForEach(data =>
+                {
+                    data.UploadInvoiceDetailId = uploadInvoiceId;
+                });
+                var trialDataResponse = await CreateTrialBalance(trialDBModels, model.UserName);
 
-                    case VATExcelType.VATTrialBalanceDataFile:
-                        var balanceDataModel = await Task.Run(() => VATTrialBalance(model.InvoiceExcelFile));
-                        var trialDBModels = await ConvertVATTrialBalanceModelToDBModel(balanceDataModel);
-                        trialDBModels.ForEach(data =>
-                        {
-                            data.UploadInvoiceDetailId = uploadInvoiceId;
-                        });
-                        var trialDataResponse = await CreateTrialBalance(trialDBModels, model.UserName);
-                        break;
-                }
+                #endregion
+
                 return await Task.Run(() => Ok("FIle Uploaded and Managed..."));
             }
             catch (Exception ex)
@@ -124,76 +156,189 @@ namespace STCAPI.Controllers.ExcelReader
         }
 
 
-        #region PrivateMethod
-        [NonAction]
-        public async Task UploadData(InvoiceDetail model)
+        [HttpPost]
+        public async Task<IActionResult> UpdateSubsidry([FromForm] UpdateSubsidryVm model)
         {
 
             try
             {
-                IDictionary<int, (string, string)> errorResult = new Dictionary<int, (string, string)>();
-                var attachmentList = await new BlobHelper().UploadDocument(model.AttachmentList, _IHostingEnviroment);
-                var invoiceFiles = new List<IFormFile>() { model.InvoiceExcelFile };
-
-                _logger.LogInformation("File attachment has been done", DateTime.Now);
-
-
-                var uploadFileDetails = await new BlobHelper().UploadDocument(invoiceFiles, _IHostingEnviroment);
-
-                var uploadInvoiceId = await CreateUploadInvocie(model, attachmentList);
-
-                switch (model.ExcelType)
+                switch (model.SubsidryName)
                 {
-                    case VATExcelType.InputDataFile:
-                        var inputVATModel = await Task.Run(() => InputVATExcelData(model.InvoiceExcelFile));
-                        errorResult = InputVATvalidationRule.ValidateInputVatData(inputVATModel);
+                    case "InputInvoice":
+                        var uploadInvoiceDetails = await _IInputVatDataFileRepository.GetAllEntities(x => x.UploadInvoiceDetailId == model.Id);
+
+                        uploadInvoiceDetails.TEntities.ToList().ForEach(te => {
+                            te.IsActive = false;
+                            te.IsDeleted = true;
+                        });
+
+                        var deleteResponse = await _IInputVatDataFileRepository.DeleteEntity(uploadInvoiceDetails.TEntities.ToArray());
+
+                        var inputVATModel = await Task.Run(() => InputVATExcelData(model.InvoiceFile));
                         var dbModels = await ConvertInputModelToDBModel(inputVATModel);
                         dbModels.ForEach(data =>
                         {
-                            data.UploadInvoiceDetailId = uploadInvoiceId;
+                            data.UploadInvoiceDetailId = model.Id;
                         });
                         var inputDataFileResponse = await CreateInputVATDetail(dbModels, model.UserName);
+
                         break;
 
-                    case VATExcelType.OutputDataFile:
-                        var outputVATModel = await Task.Run(() => OutputVATExcelFle(model.InvoiceExcelFile));
+                    case "OutputInvoice":
+                        var outputInvoiceDetails = await _ISTCVATOutputModelRepository.GetAllEntities(x => x.UploadInvoiceDetailId == model.Id);
+
+                        outputInvoiceDetails.TEntities.ToList().ForEach(te => {
+                            te.IsActive = false;
+                            te.IsDeleted = true;
+                        });
+
+                        var deleteOutputInvoiceResponse = await _ISTCVATOutputModelRepository.DeleteEntity(outputInvoiceDetails.TEntities.ToArray());
+
+                        var outputVATModel = await Task.Run(() => OutputVATExcelFle(model.InvoiceFile));
                         var dtoModel = await DTOOutModelToOutputDataModel(outputVATModel);
                         dtoModel.ForEach(data =>
                         {
-                            data.UploadInvoiceDetailId = uploadInvoiceId;
+                            data.UploadInvoiceDetailId = model.Id;
                         });
-
                         var dbResponse = await CreateSTCOutputModel(dtoModel, model.UserName);
+
                         break;
 
-                    case VATExcelType.VATReturnDataFile:
-                        var returnModel = await GetVATReturnDetail(model.InvoiceExcelFile);
-                        var dbReturnModels = await DTOConvertModelTODBObject(returnModel);
-                        dbReturnModels.Item2.ForEach(data =>
-                        {
-                            data.UploadInvoiceDetailId = uploadInvoiceId;
+                    case "ReturnInvoice":
+
+                        var deleteModels = await _IVATReturnModelRepository.GetAllEntities(x => x.UploadInvoiceDetailId == model.Id);
+
+                        deleteModels.TEntities.ToList().ForEach((te) => {
+                            te.IsActive = false;
+                            te.IsDeleted = true;
                         });
 
-                        var dbReturnResponse = await CreateVATReturnData(dbReturnModels.Item2, model.UserName);
+                        var deleteReturnInvoiceResponse = await _IVATReturnModelRepository.DeleteEntity(deleteModels.TEntities.ToArray());
+
+                        var returnModel = await Task.Run(() => VATReturnExcelData(model.InvoiceFile));
+
+                        List<VATReturnModel> returnModels = new List<VATReturnModel>();
+
+                        returnModel.ForEach(data =>
+                        {
+                            returnModels.Add(
+
+                                new VATReturnModel()
+                                {
+                                    CreatedBy = model.UserName,
+                                    SARAdjustment = Convert.ToDecimal(data.SARAdjustment == String.Empty ? 0 : data.SARAdjustment),
+                                    SARAmount = Convert.ToDecimal(data.SARAmount == String.Empty ? 0 : data.SARAmount),
+                                    UploadInvoiceDetailId = model.Id,
+                                    SARVATAmount = Convert.ToDecimal(data.SARVATAmount == String.Empty ? 0 : data.SARVATAmount),
+                                    VATReturnDetail = data.VATReturnDetail ?? String.Empty,
+                                    VATType = data.VATType ?? String.Empty,
+                                    VATTypeId = Convert.ToDecimal(data.VATTypeId ?? "0"),
+                                    VATTypeName = data.VATTypeName ?? String.Empty,
+                                    CreatedDate = DateTime.Now
+                                });
+                        });
+
+
+                        var dbReturnResponse = await CreateVATReturnData(returnModels, model.UserName);
+
                         break;
 
-                    case VATExcelType.VATTrialBalanceDataFile:
-                        var balanceDataModel = await Task.Run(() => VATTrialBalance(model.InvoiceExcelFile));
+                    case "TrialInvoice":
+                        var deleteTrialBalanceDetail = await _IVatTrialBalanceModelRepository.GetAllEntities(x => x.UploadInvoiceDetailId == model.Id);
+
+                        deleteTrialBalanceDetail.TEntities.ToList().ForEach(x => {
+                            x.IsActive = false;
+                            x.IsDeleted = true;
+                        });
+
+                        var trialDeleteResponse = await _IVatTrialBalanceModelRepository.DeleteEntity(deleteTrialBalanceDetail.TEntities.ToArray());
+
+                        var balanceDataModel = await Task.Run(() => VATTrialBalance(model.InvoiceFile));
                         var trialDBModels = await ConvertVATTrialBalanceModelToDBModel(balanceDataModel);
                         trialDBModels.ForEach(data =>
                         {
-                            data.UploadInvoiceDetailId = uploadInvoiceId;
+                            data.UploadInvoiceDetailId = model.Id;
                         });
                         var trialDataResponse = await CreateTrialBalance(trialDBModels, model.UserName);
+
                         break;
+
+                }
+
+                return Ok("success");
+            }
+            catch (Exception ex) {
+                return BadRequest("Error");
+            }
+           
+        }
+
+
+        #region PrivateMethod
+
+        private List<VATRetunDetailModel> VATReturnExcelData(IFormFile inputFile)
+        {
+            Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
+            DataSet dsexcelRecords = new DataSet();
+            IExcelDataReader reader = null;
+            string message = string.Empty;
+            Stream stream = inputFile.OpenReadStream();
+            List<VATRetunDetailModel> models = new List<VATRetunDetailModel>();
+            List<VATRetunDetailModel> finalResult = new List<VATRetunDetailModel>();
+
+            try
+            {
+                if (inputFile != null)
+                {
+                    if (inputFile.FileName.EndsWith(".xls"))
+                        reader = ExcelReaderFactory.CreateBinaryReader(stream);
+                    else if (inputFile.FileName.EndsWith(".xlsx"))
+                        reader = ExcelReaderFactory.CreateOpenXmlReader(stream);
+                    else
+                        message = "The file format is not supported.";
+
+                    dsexcelRecords = reader.AsDataSet();
+                    reader.Close();
+
+                    if (dsexcelRecords != null && dsexcelRecords.Tables.Count > 0)
+                    {
+                        DataTable inputVatInvoiceDetail = dsexcelRecords.Tables[0];
+
+                        for (int i = 1; i < inputVatInvoiceDetail.Rows.Count; i++)
+                        {
+                            var model = new VATRetunDetailModel();
+                            model.VATType = Convert.ToString(inputVatInvoiceDetail.Rows[i]["Column2"]);
+                            model.VATTypeId = Convert.ToString(inputVatInvoiceDetail.Rows[i]["Column4"]);
+                            model.VATTypeName = Convert.ToString(inputVatInvoiceDetail.Rows[i]["Column6"]);
+                            model.SARAmount = Convert.ToString(inputVatInvoiceDetail.Rows[i]["Column8"]);
+                            model.SARAdjustment = Convert.ToString(inputVatInvoiceDetail.Rows[i]["Column10"]);
+                            model.SARVATAmount = Convert.ToString(inputVatInvoiceDetail.Rows[i]["Column12"]);
+                            model.VATReturnDetail = Convert.ToString(inputVatInvoiceDetail.Rows[i]["Column7"]);
+
+                            models.Add(model);
+                        }
+                    }
                 }
             }
             catch (Exception ex)
             {
-                string exception = ex.Message;
+                message = ex.Message;
+                return null;
             }
+            models.ForEach(data =>
+            {
+                if (!string.IsNullOrEmpty(data.VATTypeId))
+                {
+                    finalResult.Add(data);
+                }
+            });
+            return finalResult;
         }
-        private async Task<int> CreateUploadInvocie(InvoiceDetail model, List<string> attchementList)
+
+
+
+        private async Task<int> CreateUploadInvocie(InvoiceDetail model, List<string> attchementList, string inputFilePath, string outPutFilePath, string returnFilePath, string trialBalancePath)
         {
             var invoiceModel = new UploadInvoiceDetail()
             {
@@ -202,7 +347,12 @@ namespace STCAPI.Controllers.ExcelReader
                 CreatedBy = model.UserName,
                 CreatedDate = DateTime.Now,
                 IsActive = true,
-                IsDeleted = false
+                IsDeleted = false,
+                Period = model.Period,
+                InputVatFilePath = inputFilePath,
+                OutputVatFilePath = outPutFilePath,
+                TrialBalanceVatFilePath = trialBalancePath,
+                ReturnVatFilePath = returnFilePath
             };
 
 
@@ -469,7 +619,7 @@ namespace STCAPI.Controllers.ExcelReader
             List<InputVATDataFile> dbModels = new List<InputVATDataFile>();
             foreach (var item in models)
             {
- 
+
                 var dbModel = new InputVATDataFile();
                 dbModel.InvoiceType = item.InvoiceType;
                 dbModel.InvoiceSource = item.InvoiceSource;
@@ -582,7 +732,7 @@ namespace STCAPI.Controllers.ExcelReader
             {
                 foreach (var item in models)
                 {
- 
+
 
                     var dtoModel = new STCVATOutputModel();
                     dtoModel.InvoiceNumber = item.InvoiceNumber.GetDefaultIfStringNull<string>();
@@ -623,6 +773,7 @@ namespace STCAPI.Controllers.ExcelReader
                     dtoModel.SARInvoiceLineAmount = item.SARInvoiceLineAmount.GetDefaultIfStringNull<decimal>();
                     dtoModel.TaxRateName = item.TaxRateName.GetDefaultIfStringNull<string>();
                     dtoModel.TaxableAmount = item.TaxableAmount.GetDefaultIfStringNull<decimal>();
+
                     dtoModel.SARTaxAmount = item.SARTaxAmount.GetDefaultIfStringNull<decimal>();
                     dtoModel.TaxAmount = item.TaxAmount.GetDefaultIfStringNull<decimal>();
                     dtoModel.SARTaxAmount = item.SARTaxAmount.GetDefaultIfStringNull<decimal>();
@@ -649,7 +800,7 @@ namespace STCAPI.Controllers.ExcelReader
                 };
                 return await Task.Run(() => dtoModels);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return await Task.Run(() => dtoModels);
             }

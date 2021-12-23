@@ -12,7 +12,7 @@ namespace STCAPI.Controllers.Configuration
     [Route("api/[controller]/[action]")]
     [ApiController]
 
-    ///This is configuration Project
+   
     public class ConfigurationController : ControllerBase
     {
         private readonly IGenericRepository<StageMaster, int> _IStageMasterRepository;
@@ -35,6 +35,18 @@ namespace STCAPI.Controllers.Configuration
             _ILogeDetailRepository = logDetailRepository;
         }
 
+        /// <summary>
+        /// Get Statge Details
+        /// 
+        /// </summary>
+        /// <remarks> Using API to get the complete stage details
+        /// 
+        /// AllowAnnonymous -> Authentication and Authorization not required.
+        /// 
+        /// 200: on success exceution for API EndPoint will get the data with 200 status code
+        /// 
+        /// </remarks>
+        /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
         [Consumes("application/json")]

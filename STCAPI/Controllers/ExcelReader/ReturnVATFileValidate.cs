@@ -31,7 +31,7 @@ namespace STCAPI.Controllers.ExcelReader
             var VATReturnModel = await Task.Run(() => VATReturnExcelData(model.InvoiceExcelFile));
             var errorResult = VATReturnValidationRule.ValidateVATReturn(VATReturnModel);
 
-            return Ok();
+            return Ok("success");
         }
 
         private List<SubsidryErrorDetail> GetErrorDetails(IDictionary<int, (string, string)> error)

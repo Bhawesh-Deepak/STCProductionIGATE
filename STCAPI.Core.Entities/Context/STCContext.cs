@@ -60,5 +60,10 @@ namespace STCAPI.Core.Entities.Context
 
         public virtual DbSet<SubsidryModel> SubsidryModels { get; set; }
         public virtual DbSet<SubsidryUserMapping> SubsidryUserMappings { get; set; }
+        public virtual DbSet<SourceMaster> SourceMasters { get; set; }
+        public virtual DbSet<SourceDataMapping> SourceDataMappings { get; set; }
+        public virtual DbSet<RawDataLink> RawDataLinks { get; set; }
+
+        
     }
 }

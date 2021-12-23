@@ -1,9 +1,5 @@
 ﻿using STCAPI.Core.ViewModel.RequestModel;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CommonHelper
 {
@@ -90,8 +86,7 @@ namespace CommonHelper
                     errorResult.Add(count++, ("TaxAccount", $"TaxAccount is mandatory"));
                 if (string.IsNullOrEmpty(data.OriginalInvoice))
                     errorResult.Add(count++, ("OriginalInvoice", $"OriginalInvoice is mandatory"));
-                if (string.IsNullOrEmpty(data.SellerName))
-                    errorResult.Add(count++, ("SellerName", $"SellerName is mandatory"));
+            
 
             }
             return errorResult;
