@@ -31,6 +31,7 @@ namespace STCAPI.Core.Entities.Context
         {
             modelBuilder.ApplyConfiguration(new DemoConfiguration());
             modelBuilder.ApplyConfiguration(new STCVATConfiguration());
+            //modelBuilder.Query<PortalAccessVm>().ToView("AuthorArticleCount");
         }
 
         public virtual DbSet<STCVATForm> STCVATForms { get; set; }
@@ -42,7 +43,6 @@ namespace STCAPI.Core.Entities.Context
         public virtual DbSet<InputVATDataFile> InputVATDataFiles { get; set; }
         public virtual DbSet<VATTrailBalanceModel> VATTrailBalanceModels { get; set; }
         public virtual DbSet<STCVATOutputModel> STCVATOutputModels { get; set; }
-
         public virtual DbSet<VATReturnModel> VATReturnModels { get; set; }
         public virtual DbSet<UploadInvoiceDetail> UploadInvoiceDetails { get; set; }
         public virtual DbSet<RequestDetailModel> RequestDetailModels { get; set; }
@@ -63,7 +63,8 @@ namespace STCAPI.Core.Entities.Context
         public virtual DbSet<SourceMaster> SourceMasters { get; set; }
         public virtual DbSet<SourceDataMapping> SourceDataMappings { get; set; }
         public virtual DbSet<RawDataLink> RawDataLinks { get; set; }
-
-        
+        public virtual DbSet<ObjectMaster> ObjectMasters { get; set; }
+        public virtual DbSet<ObjectMapping> ObjectMappings { get; set; }
+        public virtual DbSet<SubsidryInvoiceAttachment> SubsidryInvoiceAttachments { get; set; }
     }
 }

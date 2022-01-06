@@ -31,8 +31,6 @@ namespace STCAPI.Controllers.ExcelReader
             {
                 IDictionary<int, (string, string)> errorResult = new Dictionary<int, (string, string)>();
 
-                var attachmentList = await new BlobHelper().UploadDocument(model.AttachmentList,
-                    _IHostingEnviroment);
 
                 var invoiceFiles = new List<IFormFile>() { model.InvoiceExcelFile };
 

@@ -52,6 +52,7 @@ namespace STCAPI.Controllers.Configuration
         [Consumes("application/json")]
         public async Task<IActionResult> GetStageDetail()
         {
+
             var response = await _IStageMasterRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
             return Ok(response);
         }

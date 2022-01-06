@@ -7,9 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using STAAPI.Infrastructure.Repository.GenericRepository;
 using STCAPI.Core.Entities.Enums;
+using STCAPI.Core.Entities.Subsidry;
 using STCAPI.Core.Entities.VATDetailUpload;
 using STCAPI.Core.ViewModel.RequestModel;
+using STCAPI.Core.ViewModel.ResponseModel;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -30,13 +33,21 @@ namespace STCAPI.Controllers.ExcelReader
         private readonly IGenericRepository<STCVATOutputModel, int> _ISTCVATOutputModelRepository;
         private readonly IGenericRepository<VATReturnModel, int> _IVATReturnModelRepository;
         private readonly IGenericRepository<UploadInvoiceDetail, int> _IUploadInvoiceRepository;
+        private readonly IGenericRepository<SubsidryUserMapping, int> _IUserSubsidryUserMapping;
+        private readonly IGenericRepository<SubsidryInvoiceAttachment, int> _ISubsidryInvoiceAttachmentRepository;
+
+
+
         private readonly ILogger<ReadExcelData> _logger;
         public ReadExcelData(IHostingEnvironment hostingEnvironment,
             IGenericRepository<InputVATDataFile, int> inputVATDatFileRepository,
             IGenericRepository<VATTrailBalanceModel, int> vatTrialBalanceRepository,
             IGenericRepository<STCVATOutputModel, int> stcVatOutModelRepo,
             IGenericRepository<VATReturnModel, int> vatReturnModelRepository,
-            IGenericRepository<UploadInvoiceDetail, int> uploadInvoiceRepo, ILogger<ReadExcelData> logger)
+            IGenericRepository<UploadInvoiceDetail, int> uploadInvoiceRepo,
+            ILogger<ReadExcelData> logger, IGenericRepository<SubsidryUserMapping, int> userSubsidryMapping,
+            IGenericRepository<SubsidryInvoiceAttachment, int> subsidryInvoiceAttachmentRepository
+            )
         {
             _IHostingEnviroment = hostingEnvironment;
             _IInputVatDataFileRepository = inputVATDatFileRepository;
@@ -45,6 +56,8 @@ namespace STCAPI.Controllers.ExcelReader
             _IVATReturnModelRepository = vatReturnModelRepository;
             _IUploadInvoiceRepository = uploadInvoiceRepo;
             _logger = logger;
+            _IUserSubsidryUserMapping = userSubsidryMapping;
+            _ISubsidryInvoiceAttachmentRepository = subsidryInvoiceAttachmentRepository;
 
         }
         [HttpPost]
@@ -53,7 +66,12 @@ namespace STCAPI.Controllers.ExcelReader
             try
             {
                 IDictionary<int, (string, string)> errorResult = new Dictionary<int, (string, string)>();
-                var attachmentList = await new BlobHelper().UploadDocument(model.AttachmentList, _IHostingEnviroment);
+
+                var inputAttachmentList = await new BlobHelper().UploadDocument(model.InputAttachmentList, _IHostingEnviroment);
+                var outPutAttachmentList = await new BlobHelper().UploadDocument(model.OutputAttachmentList, _IHostingEnviroment);
+                var returnAttachmentList = await new BlobHelper().UploadDocument(model.ReturnAttachmentList, _IHostingEnviroment);
+                var trialAttachmentList = await new BlobHelper().UploadDocument(model.TrialAttachmentList, _IHostingEnviroment);
+
                 var invoiceFiles = new List<IFormFile>() { model.InvoiceExcelFile };
 
                 _logger.LogInformation("File attachment has been done", DateTime.Now);
@@ -71,9 +89,14 @@ namespace STCAPI.Controllers.ExcelReader
                 var returnFilePath = await new BlobHelper().UploadDocument(model.InvoiceReturnExcel, _IHostingEnviroment);
 
 
+                var companyDetail = await _IUserSubsidryUserMapping.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+                var company = companyDetail.TEntities.ToList().Find(x => x.UserName.ToLower().Trim() == model.UserName.ToLower().Trim());
                 #endregion
 
-                var uploadInvoiceId = await CreateUploadInvocie(model, attachmentList, inputFilePath, outputFilePath, returnFilePath, trialFilePath);
+                var uploadInvoiceId = await CreateUploadInvocie(model, null, inputFilePath, outputFilePath,
+                    returnFilePath, trialFilePath, company?.CompanyName ?? String.Empty);
+
+                await UploadSubsidryAttachment(model, inputAttachmentList, outPutAttachmentList, returnAttachmentList, trialAttachmentList, uploadInvoiceId);
 
                 #region Invoice Input File
                 //Validate and Insert the Invoice Excel file
@@ -148,6 +171,32 @@ namespace STCAPI.Controllers.ExcelReader
             return await Task.Run(() => BadRequest("Somthing wents wrong Please contact admin Team.."));
         }
 
+        private async Task UploadSubsidryAttachment(InvoiceDetail model, List<string> inputAttachmentList, List<string> outPutAttachmentList, List<string> returnAttachmentList, List<string> trialAttachmentList, int uploadInvoiceId)
+        {
+            var counts = new List<int>() { inputAttachmentList.Count(), outPutAttachmentList.Count(), returnAttachmentList.Count(), trialAttachmentList.Count() };
+            int maxCount = counts.Max();
+            var models = new List<SubsidryInvoiceAttachment>();
+
+            for (int i = 0; i < maxCount; i++)
+            {
+                var subsidryModel = new SubsidryInvoiceAttachment()
+                {
+                    UploadInvoiceId = uploadInvoiceId,
+                    InputAttachmentDetails = inputAttachmentList.ElementAtOrDefault(i) ?? string.Empty,
+                    OutPutAttachmentDetails = outPutAttachmentList.ElementAtOrDefault(i) ?? string.Empty,
+                    TrialAttachmentDetails = trialAttachmentList.ElementAtOrDefault(i) ?? string.Empty,
+                    ReturnAttachmentDetails = returnAttachmentList.ElementAtOrDefault(i) ?? string.Empty,
+                    CreatedBy = model.UserName
+                };
+
+                models.Add(subsidryModel);
+            }
+
+
+
+            var uploadAttachmentResponse = await _ISubsidryInvoiceAttachmentRepository.CreateEntity(models.ToArray());
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetExcelArchiveDetails()
         {
@@ -167,7 +216,8 @@ namespace STCAPI.Controllers.ExcelReader
                     case "InputInvoice":
                         var uploadInvoiceDetails = await _IInputVatDataFileRepository.GetAllEntities(x => x.UploadInvoiceDetailId == model.Id);
 
-                        uploadInvoiceDetails.TEntities.ToList().ForEach(te => {
+                        uploadInvoiceDetails.TEntities.ToList().ForEach(te =>
+                        {
                             te.IsActive = false;
                             te.IsDeleted = true;
                         });
@@ -187,7 +237,8 @@ namespace STCAPI.Controllers.ExcelReader
                     case "OutputInvoice":
                         var outputInvoiceDetails = await _ISTCVATOutputModelRepository.GetAllEntities(x => x.UploadInvoiceDetailId == model.Id);
 
-                        outputInvoiceDetails.TEntities.ToList().ForEach(te => {
+                        outputInvoiceDetails.TEntities.ToList().ForEach(te =>
+                        {
                             te.IsActive = false;
                             te.IsDeleted = true;
                         });
@@ -208,7 +259,8 @@ namespace STCAPI.Controllers.ExcelReader
 
                         var deleteModels = await _IVATReturnModelRepository.GetAllEntities(x => x.UploadInvoiceDetailId == model.Id);
 
-                        deleteModels.TEntities.ToList().ForEach((te) => {
+                        deleteModels.TEntities.ToList().ForEach((te) =>
+                        {
                             te.IsActive = false;
                             te.IsDeleted = true;
                         });
@@ -246,7 +298,8 @@ namespace STCAPI.Controllers.ExcelReader
                     case "TrialInvoice":
                         var deleteTrialBalanceDetail = await _IVatTrialBalanceModelRepository.GetAllEntities(x => x.UploadInvoiceDetailId == model.Id);
 
-                        deleteTrialBalanceDetail.TEntities.ToList().ForEach(x => {
+                        deleteTrialBalanceDetail.TEntities.ToList().ForEach(x =>
+                        {
                             x.IsActive = false;
                             x.IsDeleted = true;
                         });
@@ -267,13 +320,80 @@ namespace STCAPI.Controllers.ExcelReader
 
                 return Ok("success");
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return BadRequest("Error");
             }
-           
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="invoiceId"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        public async Task<IActionResult> GetSubsidryAttachment(int invoiceId)
+        {
+            var responseData = await _ISubsidryInvoiceAttachmentRepository.GetAllEntities(x => x.UploadInvoiceId == invoiceId);
+            var models = new List<SubsidryAttachmentDetailResponse>();
+
+            responseData.TEntities.ToList().ForEach(data =>
+            {
+                models.Add(new SubsidryAttachmentDetailResponse()
+                {
+                    Id = data.Id,
+                    InputAttachments = data.InputAttachmentDetails,
+                    TrialAttachments = data.TrialAttachmentDetails,
+                    OutputAttachments = data.OutPutAttachmentDetails,
+                    ReturnAttachments = data.ReturnAttachmentDetails,
+                });
+            });
+            return Ok(models);
         }
 
 
+        [HttpPost]
+        [Produces("application/json")]
+        public async Task<IActionResult> UpdateAttachment([FromForm] UpdateAttachmentVm model)
+        {
+            var inputAttachmentList = await new BlobHelper().UploadDocument(model.FileData, _IHostingEnviroment);
+            var responseData = await _ISubsidryInvoiceAttachmentRepository.GetAllEntities(x => x.Id == model.Id);
+            switch (model.Name)
+            {
+                case "Input":
+                    responseData.TEntities.ToList().ForEach(data =>
+                    {
+                        data.InputAttachmentDetails = inputAttachmentList;
+                    });
+                    break;
+                case "Trial":
+                    responseData.TEntities.ToList().ForEach(data =>
+                    {
+                        data.TrialAttachmentDetails = inputAttachmentList;
+                    });
+                    break;
+                case "Output":
+                    responseData.TEntities.ToList().ForEach(data =>
+                    {
+                        data.OutPutAttachmentDetails = inputAttachmentList;
+                    });
+                    break;
+                case "Return":
+                    responseData.TEntities.ToList().ForEach(data =>
+                    {
+                        data.ReturnAttachmentDetails = inputAttachmentList;
+                    });
+                    break;
+                default:
+                    break;
+            }
+
+            var updateResponse = await _ISubsidryInvoiceAttachmentRepository.UpdateEntity(responseData.TEntities.FirstOrDefault());
+            return Ok("Success");
+        }
         #region PrivateMethod
 
         private List<VATRetunDetailModel> VATReturnExcelData(IFormFile inputFile)
@@ -336,14 +456,11 @@ namespace STCAPI.Controllers.ExcelReader
             return finalResult;
         }
 
-
-
-        private async Task<int> CreateUploadInvocie(InvoiceDetail model, List<string> attchementList, string inputFilePath, string outPutFilePath, string returnFilePath, string trialBalancePath)
+        private async Task<int> CreateUploadInvocie(InvoiceDetail model, List<string> attchementList, string inputFilePath, string outPutFilePath, string returnFilePath, string trialBalancePath, string companyName)
         {
             var invoiceModel = new UploadInvoiceDetail()
             {
-                Attachments = string.Join(";", attchementList),
-                InvoiceName = model.InvoiceName,
+                StreamName = model.InvoiceName,
                 CreatedBy = model.UserName,
                 CreatedDate = DateTime.Now,
                 IsActive = true,
@@ -352,7 +469,8 @@ namespace STCAPI.Controllers.ExcelReader
                 InputVatFilePath = inputFilePath,
                 OutputVatFilePath = outPutFilePath,
                 TrialBalanceVatFilePath = trialBalancePath,
-                ReturnVatFilePath = returnFilePath
+                ReturnVatFilePath = returnFilePath,
+                CompanyName = companyName
             };
 
 

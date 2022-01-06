@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using STAAPI.Infrastructure.Repository.GenericRepository;
+using STAAPI.Infrastructure.Repository.PortalAccessRepository;
 using STCAPI.Core.Entities.Common;
 using STCAPI.Core.Entities.UserManagement;
 using STCAPI.Core.ViewModel.ResponseModel;
@@ -23,6 +24,7 @@ namespace STCAPI.Controllers.UserManagement
     {
         private readonly IGenericRepository<PortalMenuMaster, int> _IPortalMenuRepository;
         private readonly IGenericRepository<PortalAccess, int> _IPortalAccessRepository;
+        private readonly IPortalAccessRepository _IPortalMenuAccessRepository;
 
         /// <summary>
         /// Constructor for Portal Master API to inject the services
@@ -30,10 +32,11 @@ namespace STCAPI.Controllers.UserManagement
         /// <param name="portalMenuReposiory"></param>
         /// <param name="portalAcessRepo"></param>
         public PortalMenuMasterAPI(IGenericRepository<PortalMenuMaster, int> portalMenuReposiory,
-            IGenericRepository<PortalAccess, int> portalAcessRepo)
+            IGenericRepository<PortalAccess, int> portalAcessRepo, IPortalAccessRepository portalMenuAccessRepository)
         {
             _IPortalMenuRepository = portalMenuReposiory;
             _IPortalAccessRepository = portalAcessRepo;
+            _IPortalMenuAccessRepository = portalMenuAccessRepository;
         }
 
         /// <summary>
@@ -53,11 +56,12 @@ namespace STCAPI.Controllers.UserManagement
         [HttpGet]
         public async Task<IActionResult> GetUserAccess(string userName)
         {
-            var portalAccessModels = await _IPortalMenuRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+            var portalAccessModels = await _IPortalMenuAccessRepository.GetPortalAccessDetail();
+
             var userAccessPortalModels = await _IPortalAccessRepository.
                 GetAllEntities(x => x.IsActive && !x.IsDeleted && x.UserName == userName);
 
-            portalAccessModels.TEntities.ToList().ForEach(data =>
+            portalAccessModels.ToList().ForEach(data =>
             {
                 userAccessPortalModels.TEntities.ToList().ForEach(item =>
                 {
@@ -69,7 +73,6 @@ namespace STCAPI.Controllers.UserManagement
 
             });
 
-            //var response = GetFormattedResponse(portalAccessModels);
             return Ok(portalAccessModels);
         }
 
@@ -100,75 +103,6 @@ namespace STCAPI.Controllers.UserManagement
 
         }
 
-        /// <summary>
-        /// Code to get the formatted user rights as per requirement of UI developers
-        /// </summary>
-        /// <param name="portalAccessDetails"></param>
-        /// <param name="userName"></param>
-        /// <returns></returns>
-        private AdminPortalResponseModel GetFormattedResponse(ResponseModel<PortalMenuMaster, int> portalAccessDetails, string userName)
-        {
-            var model = new AdminPortalResponseModel();
-
-
-            var subStreamList = new List<SubStream>();
-            var mainStreamList = new List<MainStream>();
-            var stageList = new List<Stage>();
-
-            var resultSet = portalAccessDetails.TEntities.OrderBy(x => x.ObjectName).ToList();
-
-            foreach (var stageData in resultSet.GroupBy(x => x.Stage))
-            {
-                var stageModel = new Stage();
-                stageModel.stageName = stageData.Key;
-
-                foreach (var mainStreamData in stageData.GroupBy(x => x.MainStream))
-                {
-                    var mainStreamModel = new MainStream();
-                    mainStreamModel.streamName = mainStreamData.Key;
-
-
-                    foreach (var subStreamData in mainStreamData.GroupBy(x => x.Stream))
-                    {
-                        var subStreamModel = new SubStream();
-                        subStreamModel.subStreamName = subStreamData.Key;
-                        subStreamList.Add(subStreamModel);
-                        var objectDatas = new List<ObjectData>();
-                        foreach (var objectData in subStreamData.GroupBy(x => x.ObjectName))
-                        {
-                            var objectData1 = new ObjectData();
-                            objectData1.name = objectData.Key;
-                            objectData1.accessLevel = false;
-
-                            var datums = new List<Datum>();
-                            foreach (var data in objectData)
-                            {
-                                var datum = new Datum();
-
-                                datum.PortalId = data.Id;
-                                datum.accessLevel = data.Flag;
-                                datum.name = data.Name;
-
-                                datums.Add(datum);
-                            }
-                            objectData1.data = datums;
-                            objectDatas.Add(objectData1);
-                        }
-
-                        subStreamModel.Object = objectDatas;
-                    }
-                    mainStreamModel.subStream = subStreamList;
-                    mainStreamList.Add(mainStreamModel);
-                }
-                stageModel.mainStream = mainStreamList;
-                stageList.Add(stageModel);
-
-            }
-            model.directory = "Basserah";
-            model.userName = userName;
-            model.stages = stageList;
-            return model;
-        }
 
         /// <summary>
         /// Get the User Access right based on user name detail

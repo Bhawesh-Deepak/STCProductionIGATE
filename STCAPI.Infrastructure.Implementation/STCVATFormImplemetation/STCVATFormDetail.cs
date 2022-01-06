@@ -59,7 +59,7 @@ namespace STCAPI.Infrastructure.Implementation.STCVATFormImplemetation
             }
             catch (Exception ex)
             {
-                return new ResponseModel<STCVATForm, int>(null, null, ex.InnerException.ToString(), ResponseStatus.Error);
+                throw new Exception(ex.Message + ex.InnerException, ex);
             }
 
         }
@@ -71,11 +71,17 @@ namespace STCAPI.Infrastructure.Implementation.STCVATFormImplemetation
 
         public async Task<ResponseModel<STCVATForm, int>> GetAllEntities(Func<STCVATForm, bool> where)
         {
-            var models = new List<STCVATForm>();
-            models = where != null ? context.STCVATForms.Where(where).ToList() : 
-                context.STCVATForms.ToList();
-            return await Task.Run(() => new ResponseModel<STCVATForm, int>(null, models, "success", ResponseStatus.Success));
-
+            try
+            {
+                var models = new List<STCVATForm>();
+                models = where != null ? context.STCVATForms.Where(where).ToList() :
+                    context.STCVATForms.ToList();
+                return await Task.Run(() => new ResponseModel<STCVATForm, int>(null, models, "success", ResponseStatus.Success));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + ex.InnerException, ex);
+            }
         }
 
         public Task<ResponseModel<STCVATForm, int>> UpdateEntity(STCVATForm model)

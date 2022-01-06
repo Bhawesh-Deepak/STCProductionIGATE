@@ -8,9 +8,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using STAAPI.Infrastructure.Repository.GenericRepository;
+using STAAPI.Infrastructure.Repository.PortalAccessRepository;
 using STAAPI.Infrastructure.Repository.STCVATRepository;
 using STCAPI.Helper;
 using STCAPI.Infrastructure.Implementation.GenericImplementation;
+using STCAPI.Infrastructure.Implementation.PortalAccess;
 using STCAPI.Infrastructure.Implementation.STCVATFormImplemetation;
 using System;
 using System.Collections.Generic;
@@ -51,6 +53,7 @@ namespace STCAPI
             services.AddTransient<INotificationService, NotificationService>();
             services.AddTransient<ISTCPOstValidationRepository, STCPostValidationDetail>();
             services.AddTransient<IReconcilationSummaryRepository, ReconcilationSummaryImplementation>();
+            services.AddTransient<IPortalAccessRepository, PortalAccessImplementation>();
 
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

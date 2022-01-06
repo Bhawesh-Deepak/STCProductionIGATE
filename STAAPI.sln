@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31515.178
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{6CCAB355-597F-4260-BD2F-F3F3762A7C31}"
 EndProject
@@ -28,7 +28,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "STCVAT_Demo.UI", "STCVAT_Demo.UI\STCVAT_Demo.UI.csproj", "{0ADE5C3B-4BFF-4582-8238-5EF5FA1E8D60}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "STCVAT_Demo.UI", "STCVAT_Demo.UI\STCVAT_Demo.UI.csproj", "{0ADE5C3B-4BFF-4582-8238-5EF5FA1E8D60}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTest", "UnitTest", "{2BFFE47D-DE23-4893-87AD-DD7E2E2CE81F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "STCAPI_UnitAPI", "STCAPI_UnitAPI\STCAPI_UnitAPI.csproj", "{965FFB79-D752-4A9B-94C2-8BE16953A0C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -68,6 +72,10 @@ Global
 		{0ADE5C3B-4BFF-4582-8238-5EF5FA1E8D60}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0ADE5C3B-4BFF-4582-8238-5EF5FA1E8D60}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0ADE5C3B-4BFF-4582-8238-5EF5FA1E8D60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{965FFB79-D752-4A9B-94C2-8BE16953A0C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{965FFB79-D752-4A9B-94C2-8BE16953A0C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{965FFB79-D752-4A9B-94C2-8BE16953A0C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{965FFB79-D752-4A9B-94C2-8BE16953A0C1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -79,6 +87,7 @@ Global
 		{3F9F71AD-1DD5-4F79-BC94-C2049DB74A97} = {6CCAB355-597F-4260-BD2F-F3F3762A7C31}
 		{7AB5BE05-FCAC-4364-AA46-73ECE5697F1F} = {683C7B4F-F4AB-4523-9698-38E1E2671281}
 		{8636AAF5-3569-4036-92B8-37147999691F} = {683C7B4F-F4AB-4523-9698-38E1E2671281}
+		{965FFB79-D752-4A9B-94C2-8BE16953A0C1} = {2BFFE47D-DE23-4893-87AD-DD7E2E2CE81F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C7AE1DF2-F5DD-44CB-B35B-151700DBC492}

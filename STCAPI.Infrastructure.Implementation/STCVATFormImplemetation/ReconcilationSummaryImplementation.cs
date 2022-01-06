@@ -34,7 +34,7 @@ namespace STCAPI.Infrastructure.Implementation.STCVATFormImplemetation
             }
             catch (Exception ex)
             {
-                return new ResponseModel<RecincilationSummary, int>(null, null, ex.InnerException.ToString(), ResponseStatus.Error);
+                throw new Exception(ex.Message + ex.InnerException, ex);
             }
         }
 

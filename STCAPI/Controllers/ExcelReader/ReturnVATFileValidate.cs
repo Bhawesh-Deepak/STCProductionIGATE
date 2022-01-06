@@ -28,10 +28,18 @@ namespace STCAPI.Controllers.ExcelReader
         [HttpPost]
         public async Task<IActionResult> ValidateReturnFile([FromForm] InvoiceDetail model)
         {
-            var VATReturnModel = await Task.Run(() => VATReturnExcelData(model.InvoiceExcelFile));
-            var errorResult = VATReturnValidationRule.ValidateVATReturn(VATReturnModel);
+            try
+            {
+                var VATReturnModel = await Task.Run(() => VATReturnExcelData(model.InvoiceExcelFile));
+                var errorResult = VATReturnValidationRule.ValidateVATReturn(VATReturnModel);
 
-            return Ok("success");
+                return Ok("success");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Error");
+            }
+
         }
 
         private List<SubsidryErrorDetail> GetErrorDetails(IDictionary<int, (string, string)> error)

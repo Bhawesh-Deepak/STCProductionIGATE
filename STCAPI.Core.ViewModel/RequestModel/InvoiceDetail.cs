@@ -19,11 +19,11 @@ namespace STCAPI.Core.ViewModel.RequestModel
         public IFormFile InvoiceReturnExcel { get; set; }
         public string InvoiceName { get; set; }
         public string UserName { get; set; }
-        public List<IFormFile> AttachmentList { get; set; }
+        public List<IFormFile> InputAttachmentList { get; set; }
+        public List<IFormFile> OutputAttachmentList { get; set; }
+        public List<IFormFile> TrialAttachmentList { get; set; }
+        public List<IFormFile> ReturnAttachmentList { get; set; }
 
-        //[EnumDataType(typeof(VATExcelType))]
-        //[JsonConverter(typeof(JsonStringEnumConverter))]
-        //public VATExcelType ExcelType { get; set; }
         public string Period { get; set; }
     }
 }

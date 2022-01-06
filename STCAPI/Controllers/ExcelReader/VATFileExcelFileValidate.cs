@@ -29,22 +29,27 @@ namespace STCAPI.Controllers.ExcelReader
         [HttpPost]
         public async Task<IActionResult> ValidateVATFile([FromForm] InvoiceDetail model)
         {
-            IDictionary<int, (string, string)> errorResult = new Dictionary<int, (string, string)>();
+            try
+            {
+                IDictionary<int, (string, string)> errorResult = new Dictionary<int, (string, string)>();
 
-            var attachmentList = await new BlobHelper().UploadDocument(model.AttachmentList,
-                _IHostingEnviroment);
+               
+                var invoiceFiles = new List<IFormFile>() { model.InvoiceExcelFile };
 
-            var invoiceFiles = new List<IFormFile>() { model.InvoiceExcelFile };
+                var uploadFileDetails = await new BlobHelper().UploadDocument(invoiceFiles, _IHostingEnviroment);
 
-            var uploadFileDetails = await new BlobHelper().UploadDocument(invoiceFiles, _IHostingEnviroment);
+                var inputVATModel = await Task.Run(() => InputVATExcelData(model.InvoiceExcelFile));
+                errorResult = InputVATvalidationRule.ValidateInputVatData(inputVATModel);
 
-            var inputVATModel = await Task.Run(() => InputVATExcelData(model.InvoiceExcelFile));
-            errorResult = InputVATvalidationRule.ValidateInputVatData(inputVATModel);
+                var errorDetails = GetErrorDetails(errorResult);
 
-            var errorDetails = GetErrorDetails(errorResult);
+                return Ok(errorDetails);
 
-            return Ok(errorDetails);
-
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Error");
+            }
         }
 
         private List<InputVATFileVm> InputVATExcelData(IFormFile inputFile)
@@ -110,7 +115,7 @@ namespace STCAPI.Controllers.ExcelReader
                             model.ReceiptNumber = Convert.ToString(inputVatInvoiceDetail.Rows[i][28]);
                             model.ReceiptDate = Convert.ToString(inputVatInvoiceDetail.Rows[i][29]);
                             model.PoItemNumber = Convert.ToString(inputVatInvoiceDetail.Rows[i][30]);
-                          
+
                             model.PoItemDescription = Convert.ToString(inputVatInvoiceDetail.Rows[i][31]);
                             //model.InvoiceSource = Convert.ToString(inputVatInvoiceDetail.Rows[i][31]);
                             model.Quantity = Convert.ToString(inputVatInvoiceDetail.Rows[i][32]);
@@ -133,7 +138,7 @@ namespace STCAPI.Controllers.ExcelReader
                             model.SARRecoverableTaxableAmount = Convert.ToString(inputVatInvoiceDetail.Rows[i][48]);
                             model.NonRecoverableTaxAmount = Convert.ToString(inputVatInvoiceDetail.Rows[i][49]);
                             model.SARNonRecoverableTaxAmount = Convert.ToString(inputVatInvoiceDetail.Rows[i][50]);
-                            model.RecoverableTaxGLAccountNumber= Convert.ToString(inputVatInvoiceDetail.Rows[i][51]);
+                            model.RecoverableTaxGLAccountNumber = Convert.ToString(inputVatInvoiceDetail.Rows[i][51]);
                             models.Add(model);
                         }
                     }
