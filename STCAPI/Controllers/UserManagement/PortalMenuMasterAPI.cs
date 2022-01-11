@@ -25,6 +25,7 @@ namespace STCAPI.Controllers.UserManagement
         private readonly IGenericRepository<PortalMenuMaster, int> _IPortalMenuRepository;
         private readonly IGenericRepository<PortalAccess, int> _IPortalAccessRepository;
         private readonly IPortalAccessRepository _IPortalMenuAccessRepository;
+        private readonly IGenericRepository<ObjectMapping, int> _IObjectMappingRepository;
 
         /// <summary>
         /// Constructor for Portal Master API to inject the services
@@ -32,11 +33,12 @@ namespace STCAPI.Controllers.UserManagement
         /// <param name="portalMenuReposiory"></param>
         /// <param name="portalAcessRepo"></param>
         public PortalMenuMasterAPI(IGenericRepository<PortalMenuMaster, int> portalMenuReposiory,
-            IGenericRepository<PortalAccess, int> portalAcessRepo, IPortalAccessRepository portalMenuAccessRepository)
+            IGenericRepository<PortalAccess, int> portalAcessRepo, IGenericRepository<ObjectMapping, int> objectMappingRepo, IPortalAccessRepository portalMenuAccessRepository)
         {
             _IPortalMenuRepository = portalMenuReposiory;
             _IPortalAccessRepository = portalAcessRepo;
             _IPortalMenuAccessRepository = portalMenuAccessRepository;
+            _IObjectMappingRepository = objectMappingRepo;
         }
 
         /// <summary>
@@ -56,24 +58,24 @@ namespace STCAPI.Controllers.UserManagement
         [HttpGet]
         public async Task<IActionResult> GetUserAccess(string userName)
         {
-            var portalAccessModels = await _IPortalMenuAccessRepository.GetPortalAccessDetail();
+            var objectMappingDetails = await _IObjectMappingRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
 
             var userAccessPortalModels = await _IPortalAccessRepository.
                 GetAllEntities(x => x.IsActive && !x.IsDeleted && x.UserName == userName);
 
-            portalAccessModels.ToList().ForEach(data =>
+            objectMappingDetails.TEntities.ToList().ForEach(data =>
             {
                 userAccessPortalModels.TEntities.ToList().ForEach(item =>
                 {
                     if (data.Id == item.PortalId)
                     {
-                        data.Flag = true;
+                        data.Flag = 1;
                     }
                 });
 
             });
 
-            return Ok(portalAccessModels);
+            return Ok(objectMappingDetails);
         }
 
         [HttpPost]

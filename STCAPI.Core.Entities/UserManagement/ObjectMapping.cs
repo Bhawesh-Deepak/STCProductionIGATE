@@ -17,5 +17,8 @@ namespace STCAPI.Core.Entities.UserManagement
         public string Object { get; set; }
         public string Name { get; set; }
         public byte Flag { get; set; }
+
+        [NotMapped]
+        public bool IsMapped { get; set; }
     }
 }

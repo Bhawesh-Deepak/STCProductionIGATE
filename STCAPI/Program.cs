@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 using Serilog;
+using Serilog.Sinks.MariaDB;
 using Serilog.Sinks.MariaDB.Extensions;
 
 namespace STCAPI
@@ -29,10 +30,21 @@ namespace STCAPI
                     connectionString: configuration.GetConnectionString("DefaultConnection"))
                 .CreateLogger();
 
-
-
-            Log.Error("Starting the HostBuilder...");
-            CreateHostBuilder(args).Build().Run();
+            try
+            {
+                Log.Error("Starting the HostBuilder...");
+                CreateHostBuilder(args).Build().Run();
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "The HostBuilder terminated unexpectedly");
+            }
+            finally
+            {
+                Log.Error("HostBuilder is up and running.");
+                Log.CloseAndFlush();
+            }
+         
 
         }
 

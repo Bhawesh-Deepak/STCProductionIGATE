@@ -42,6 +42,7 @@
   <ItemGroup>
     <Folder Include="LogDetail\" />
     <Folder Include="wwwroot\Files\" />
+    <Folder Include="wwwroot\ReportCSVPath\" />
   </ItemGroup>
 
   <ItemGroup>
