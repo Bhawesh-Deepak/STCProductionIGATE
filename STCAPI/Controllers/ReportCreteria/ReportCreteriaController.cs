@@ -35,7 +35,7 @@ namespace STCAPI.Controllers.ReportCreteria
         /// <param name="configurationMasterRepository"></param>
         /// <param name="reportCreteriaRepository"></param>
         /// <param name="environment"></param>
-        public ReportCreteriaController(IGenericRepository<ConfigurationMaster, int> configurationMasterRepository,
+        public ReportCreteriaController(IGenericRepository<ObjectMapping, int> configurationMasterRepository,
             IGenericRepository<ReportCreteriaModel, int> reportCreteriaRepository, IHostingEnvironment environment)
         {
             _IConfigurationMasterRepository = configurationMasterRepository;
@@ -86,7 +86,7 @@ namespace STCAPI.Controllers.ReportCreteria
         /// Get Report Creteria.
         /// </summary>
         /// <returns></returns>
-        [HttpPost]
+        [HttpGet]
         [Produces("application/json")]
         [Consumes("application/json")]
         public async Task<IActionResult> GetReportCreteria()
@@ -95,8 +95,7 @@ namespace STCAPI.Controllers.ReportCreteria
 
             var response = await _IReportCreteriaRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
 
-            var reportDetails = await _IConfigurationMasterRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted
-                && x.ConfigurationType.ToLower().Trim() == "report");
+            var reportDetails = await _IConfigurationMasterRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
 
             if (reportDetails != null && reportDetails.TEntities.Any())
             {
@@ -105,12 +104,11 @@ namespace STCAPI.Controllers.ReportCreteria
                     var modelVm = new ReportCreteriaResponseVm()
                     {
                         Id = data.Id,
-                        ReportName = data.Name,
-                        LongName = data.LongName,
-                        ShortName = data.ShortName,
-                        ReportNumber = data.ReportNumber.ToString(),
-                        Description = data.Description,
-                        CSVPath = "//ReportCSVPath//" + data.Name + ".xlsx"
+                        ReportName=data.Name,
+                        ReportNumber=data.ObjectNumber,
+                        ShortName=data.ShortName,
+                        LongName=data.LongName,
+                        Description=data.Description
                     };
 
                     models.Add(modelVm);
@@ -124,7 +122,7 @@ namespace STCAPI.Controllers.ReportCreteria
                     {
                         if (data.Id == item.ObjectMappingId)
                         {
-                            data.Creteria = item.Creteria;
+                            data.Criteria = item.Creteria;
                             data.JsonRule = item.JsonRule;
                            
                         }

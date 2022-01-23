@@ -11,6 +11,7 @@ using STCAPI.Core.Entities.UserManagement;
 using STCAPI.Core.Entities.VATDetailUpload;
 using STCAPI.DataLayer.AdminPortal;
 using STCAPI.Core.Entities.ReportCreteria;
+using STCAPI.Core.Entities.MenuSubMenu;
 
 namespace STCAPI.Core.Entities.Context
 {
@@ -68,5 +69,7 @@ namespace STCAPI.Core.Entities.Context
         public virtual DbSet<ObjectMapping> ObjectMappings { get; set; }
         public virtual DbSet<SubsidryInvoiceAttachment> SubsidryInvoiceAttachments { get; set; }
         public virtual DbSet<ReportCreteriaModel> ReportCreterias { get; set; }
+        public virtual DbSet<MenuSubMenuModel> MenuSubMenuModels { get; set; }
+        public virtual DbSet<MenuSubMenuAccessModel> MenuSubMenuAccessModels{ get; set; }
     }
 }

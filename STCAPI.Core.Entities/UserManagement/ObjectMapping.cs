@@ -16,6 +16,12 @@ namespace STCAPI.Core.Entities.UserManagement
         public string Stream { get; set; }
         public string Object { get; set; }
         public string Name { get; set; }
+
+        public string ShortName { get; set; }
+        public string LongName { get; set; }
+        public string Description { get; set; }
+        public string ObjectReference { get; set; }
+        public string ObjectNumber { get; set; }
         public byte Flag { get; set; }
 
         [NotMapped]

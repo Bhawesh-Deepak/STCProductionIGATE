@@ -14,7 +14,7 @@ namespace STCAPI.Core.ViewModel.ResponseModel
         public string ShortName { get; set; }
         public string Description { get; set; }
         public string ReportNumber { get; set; }
-        public string Creteria { get; set; }
+        public string Criteria { get; set; }
         public string JsonRule { get; set; }
         public string UserName { get; set; }
         public string CSVPath { get; set; }

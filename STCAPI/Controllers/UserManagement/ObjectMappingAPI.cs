@@ -39,11 +39,13 @@ namespace STCAPI.Controllers.UserManagement
         public async Task<IActionResult> UpdateObjectMappingDetails(ObjectMapping model)
         {
             var deleteModel = await _IObjectMappingRepository.GetAllEntities(x => x.Id == model.Id);
+
             deleteModel.TEntities.ToList().ForEach(x =>
             {
                 x.IsActive = false;
                 x.IsDeleted = true;
             });
+
             var deleteResponse = await _IObjectMappingRepository.DeleteEntity(deleteModel.TEntities.ToArray());
             model.Id = 0;
             var createResponse = await _IObjectMappingRepository.CreateEntity(new List<ObjectMapping>() { model }.ToArray());
