@@ -14,16 +14,29 @@ using System.Threading.Tasks;
 
 namespace STCAPI.Controllers.ExcelReader
 {
+    /// <summary>
+    /// Validate output file details
+    /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class OutputVATFileValidate : ControllerBase
     {
         private readonly IHostingEnvironment _IHostingEnviroment;
+
+        /// <summary>
+        /// Inject required service to controller constructor
+        /// </summary>
+        /// <param name="hostingEnvironment"></param>
         public OutputVATFileValidate(IHostingEnvironment hostingEnvironment)
         {
             _IHostingEnviroment = hostingEnvironment;
         }
 
+        /// <summary>
+        /// Validate output file and return the issue detail is any present.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<IActionResult> ValidateOutPutFile([FromForm] InvoiceDetail model)
         {

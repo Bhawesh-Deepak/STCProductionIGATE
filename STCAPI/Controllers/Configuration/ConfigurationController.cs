@@ -9,10 +9,11 @@ using System.Threading.Tasks;
 
 namespace STCAPI.Controllers.Configuration
 {
+    /// <summary>
+    ///  Configuration manager which manage the stage stream and main stream master
+    /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
-
-   
     public class ConfigurationController : ControllerBase
     {
         private readonly IGenericRepository<StageMaster, int> _IStageMasterRepository;
@@ -22,6 +23,14 @@ namespace STCAPI.Controllers.Configuration
 
         private readonly IGenericRepository<ConfigurationMaster, int> _IConfigurationMaster;
 
+        /// <summary>
+        /// Inject required service to the constructor
+        /// </summary>
+        /// <param name="iStageMasterRepository"></param>
+        /// <param name="iStreamMasterRepository"></param>
+        /// <param name="iMainStreamRepository"></param>
+        /// <param name="logDetailRepository"></param>
+        /// <param name="iConfigurationMaster"></param>
         public ConfigurationController(IGenericRepository<StageMaster, int> iStageMasterRepository,
             IGenericRepository<StreamMaster, int> iStreamMasterRepository,
             IGenericRepository<MainStreamMaster, int> iMainStreamRepository,
@@ -57,6 +66,11 @@ namespace STCAPI.Controllers.Configuration
             return Ok(response);
         }
 
+        /// <summary>
+        /// Api to get the main stream detail data
+        /// </summary>
+        /// <param name="stageId"></param>
+        /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
         public async Task<IActionResult> GetMainStreamDetail(int stageId)
@@ -65,6 +79,11 @@ namespace STCAPI.Controllers.Configuration
             return Ok(response);
         }
 
+        /// <summary>
+        /// Get stream detail data
+        /// </summary>
+        /// <param name="mainStreamId"></param>
+        /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
         public async Task<IActionResult> GetStreamDetail(int mainStreamId)
@@ -74,7 +93,11 @@ namespace STCAPI.Controllers.Configuration
             return Ok(response);
         }
 
-
+        /// <summary>
+        /// Create configuration 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         [Produces("application/json")]
         [Consumes("application/json")]
@@ -84,6 +107,11 @@ namespace STCAPI.Controllers.Configuration
             return Ok(response);
         }
 
+        /// <summary>
+        /// Get Configuration Detail data
+        /// </summary>
+        /// <param name="configurationTypeId"></param>
+        /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
         public async Task<IActionResult> GetConfigurationDetails(string configurationTypeId)
@@ -94,6 +122,11 @@ namespace STCAPI.Controllers.Configuration
             return Ok(response);
         }
 
+        /// <summary>
+        /// Update Configuration detail information 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         [Produces("application/json")]
         [Consumes("application/json")]
@@ -116,6 +149,11 @@ namespace STCAPI.Controllers.Configuration
             return Ok(createResponse);
         }
 
+        /// <summary>
+        /// Delete  configuration detail information
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
         [Consumes("application/json")]

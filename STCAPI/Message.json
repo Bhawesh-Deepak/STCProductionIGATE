@@ -2,6 +2,8 @@
   "Create": "Created successfully !!!",
   "Deleted": "Deleted successfully !!!",
   "Updated": "Updated successfully !!!!",
-  "Success": "Operation performed successfully !!!"
-  "Report1": "Repor1"
+  "Success": "Operation performed successfully !!!",
+
+  "Report1": "Repor1",
+  "ReportName": "CSVPath"
 }

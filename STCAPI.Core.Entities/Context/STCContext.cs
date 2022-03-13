@@ -12,6 +12,7 @@ using STCAPI.Core.Entities.VATDetailUpload;
 using STCAPI.DataLayer.AdminPortal;
 using STCAPI.Core.Entities.ReportCreteria;
 using STCAPI.Core.Entities.MenuSubMenu;
+using STCAPI.Core.Entities.SqlQueryValidation;
 
 namespace STCAPI.Core.Entities.Context
 {
@@ -71,5 +72,6 @@ namespace STCAPI.Core.Entities.Context
         public virtual DbSet<ReportCreteriaModel> ReportCreterias { get; set; }
         public virtual DbSet<MenuSubMenuModel> MenuSubMenuModels { get; set; }
         public virtual DbSet<MenuSubMenuAccessModel> MenuSubMenuAccessModels{ get; set; }
+        public virtual DbSet<SqlQueryValidationModel> SqlQueryValidations { get; set; }
     }
 }

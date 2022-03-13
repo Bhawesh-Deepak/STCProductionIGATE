@@ -11,19 +11,36 @@ using System.Threading.Tasks;
 
 namespace STCAPI.Controllers.MenuSubMenuAccess
 {
+    /// <summary>
+    /// Mensubmenu Access based on userName
+    /// Table Used for this API=> MenuSubMenu,MenuSubMenuAccess
+    /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
+ 
     public class MenuSubMenuAccessController : ControllerBase
     {
         private readonly IGenericRepository<MenuSubMenuModel, int> _IMenuSubMenuRepository;
         private readonly IGenericRepository<MenuSubMenuAccessModel, int> _IMenuSubMenuAccessRepository;
 
+        /// <summary>
+        /// Inject required service to the controller
+        /// </summary>
+        /// Table Used: MenuSubMenu
+        /// <param name="menuSubMenuRepository"></param>
+        /// <param name="menuSubMenuAccessReopsitory"></param>
         public MenuSubMenuAccessController(IGenericRepository<MenuSubMenuModel, int> menuSubMenuRepository, IGenericRepository<MenuSubMenuAccessModel, int> menuSubMenuAccessReopsitory)
         {
             _IMenuSubMenuRepository = menuSubMenuRepository;
             _IMenuSubMenuAccessRepository = menuSubMenuAccessReopsitory;
         }
 
+        /// <summary>
+        /// Create menu and submenu dynamically
+        /// </summary>
+        /// <param name="models"></param>
+        /// Table Used: 
+        /// <returns></returns>
         [HttpPost]
         [Produces("application/json")]
         [Consumes("application/json")]
@@ -48,13 +65,17 @@ namespace STCAPI.Controllers.MenuSubMenuAccess
             return Ok(response);
         }
 
-
+        /// <summary>
+        /// Create Menu submenu access details based on UserName
+        /// </summary>
+        /// <param name="models"></param>
+        /// <returns></returns>
         [HttpPost]
         [Produces("application/json")]
         [Consumes("application/json")]
         public async Task<IActionResult> MenuSubMenuAccess(List<MenuSubMenuAccessVm> models)
         {
-            var response = await _IMenuSubMenuAccessRepository.GetAllEntities(x => x.UserName == models.First().UserName);
+            var response = await _IMenuSubMenuAccessRepository.GetAllEntities(x => x.UserName.ToLower() == models.First().UserName.ToLower());
 
             response.TEntities.ToList().ForEach(item =>
             {
@@ -89,6 +110,11 @@ namespace STCAPI.Controllers.MenuSubMenuAccess
 
         }
 
+        /// <summary>
+        /// Get Menu submenu access detail based on userName
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
         [Consumes("application/json")]
@@ -135,12 +161,15 @@ namespace STCAPI.Controllers.MenuSubMenuAccess
                         SubMenuId=item.SubMenuId,
                         RouteUrl=item.RouteUrl,
                         SubMenuName=item.SubMenuName,
+                       IsMapped=item.IsMapped
                     };
                     childerns.Add(chilModel);
                 }
                 model.Childrens = childerns;
                 response.Add(model);
             }
+
+
             return Ok(response);
 
         }

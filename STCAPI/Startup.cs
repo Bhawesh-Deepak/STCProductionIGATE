@@ -55,6 +55,10 @@ namespace STCAPI
             services.AddTransient<IReconcilationSummaryRepository, ReconcilationSummaryImplementation>();
             services.AddTransient<IPortalAccessRepository, PortalAccessImplementation>();
 
+            services.AddMvc(option => {
+                option.OutputFormatters.Insert(0, new CSVFormatter());
+            });
+
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 

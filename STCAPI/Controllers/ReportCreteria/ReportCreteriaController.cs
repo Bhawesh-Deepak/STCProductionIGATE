@@ -63,9 +63,10 @@ namespace STCAPI.Controllers.ReportCreteria
                 IsActive = true,
                 IsDeleted = false,
                 CreatedBy = modelData.UserName,
+                CreatedDate=DateTime.Now
             };
 
-            var ExistDataModel = await _IReportCreteriaRepository.GetAllEntities(x => x.IsActive && x.IsDeleted
+            var ExistDataModel = await _IReportCreteriaRepository.GetAllEntities(x => x.IsActive
              && x.UserName.Trim().ToLower() == modelData.UserName.Trim().ToLower() && x.ObjectMappingId == modelData.Id);
 
             if (ExistDataModel != null && ExistDataModel.TEntities.Any())
@@ -74,6 +75,8 @@ namespace STCAPI.Controllers.ReportCreteria
                 {
                     data.IsActive = false;
                     data.IsDeleted = true;
+                    data.UpdatedDate = DateTime.Now;
+                    data.UpdatedBy = modelData.UserName;
                 });
                 var deleteRepsonse = await _IReportCreteriaRepository.DeleteEntity(ExistDataModel.TEntities.ToArray());
             }
@@ -104,18 +107,19 @@ namespace STCAPI.Controllers.ReportCreteria
                     var modelVm = new ReportCreteriaResponseVm()
                     {
                         Id = data.Id,
-                        ReportName=data.Name,
-                        ReportNumber=data.ObjectNumber,
-                        ShortName=data.ShortName,
-                        LongName=data.LongName,
-                        Description=data.Description
+                        ReportName = data.Name,
+                        ReportNumber = data.ObjectNumber,
+                        ShortName = data.ShortName,
+                        LongName = data.LongName,
+                        Description = data.Description
                     };
 
                     models.Add(modelVm);
                 });
             }
 
-            if (response != null && response.TEntities.Any()) {
+            if (response != null && response.TEntities.Any())
+            {
                 models.ForEach(data =>
                 {
                     response.TEntities.ToList().ForEach(item =>
@@ -124,7 +128,7 @@ namespace STCAPI.Controllers.ReportCreteria
                         {
                             data.Criteria = item.Creteria;
                             data.JsonRule = item.JsonRule;
-                           
+
                         }
                     });
                 });
@@ -132,6 +136,17 @@ namespace STCAPI.Controllers.ReportCreteria
 
 
             return Ok(models);
+        }
+
+        [HttpGet]
+        [Produces("text/csv")]
+        [Consumes("application/json")]
+        public async Task<IActionResult> GetReportCSVData(string reportName)
+        {
+            string path = _IHostingEnvironment.WebRootPath + "\\ReportCSVPath\\"+ reportName;
+            string data = System.IO.File.ReadAllText(path, Encoding.UTF8);
+            
+            return await Task.Run(() => Ok(data));
         }
     }
 }

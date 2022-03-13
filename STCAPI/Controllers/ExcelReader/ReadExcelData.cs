@@ -22,6 +22,10 @@ using System.Threading.Tasks;
 
 namespace STCAPI.Controllers.ExcelReader
 {
+
+    /// <summary>
+    /// Validate the subsidry and Insert the information to the data base
+    /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
     [EnableCors("AllowAnyOrigin")]
@@ -60,6 +64,12 @@ namespace STCAPI.Controllers.ExcelReader
             _ISubsidryInvoiceAttachmentRepository = subsidryInvoiceAttachmentRepository;
 
         }
+
+        /// <summary>
+        /// Upload the validated Excel FIle to Data Base.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<IActionResult> UploadExcelData([FromForm] InvoiceDetail model)
         {
@@ -171,6 +181,16 @@ namespace STCAPI.Controllers.ExcelReader
             return await Task.Run(() => BadRequest("Somthing wents wrong Please contact admin Team.."));
         }
 
+        /// <summary>
+        /// Uploda the Subsidry Attachemnent details
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="inputAttachmentList"></param>
+        /// <param name="outPutAttachmentList"></param>
+        /// <param name="returnAttachmentList"></param>
+        /// <param name="trialAttachmentList"></param>
+        /// <param name="uploadInvoiceId"></param>
+        /// <returns></returns>
         private async Task UploadSubsidryAttachment(InvoiceDetail model, List<string> inputAttachmentList, List<string> outPutAttachmentList, List<string> returnAttachmentList, List<string> trialAttachmentList, int uploadInvoiceId)
         {
             var counts = new List<int>() { inputAttachmentList.Count(), outPutAttachmentList.Count(), returnAttachmentList.Count(), trialAttachmentList.Count() };
@@ -197,6 +217,10 @@ namespace STCAPI.Controllers.ExcelReader
             var uploadAttachmentResponse = await _ISubsidryInvoiceAttachmentRepository.CreateEntity(models.ToArray());
         }
 
+        /// <summary>
+        /// Get all the Upload Excel FIle Details
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public async Task<IActionResult> GetExcelArchiveDetails()
         {
@@ -211,6 +235,8 @@ namespace STCAPI.Controllers.ExcelReader
 
             try
             {
+                var attachment = await new BlobHelper().UploadDocument(model.InvoiceFile, _IHostingEnviroment);
+
                 switch (model.SubsidryName)
                 {
                     case "InputInvoice":
@@ -220,6 +246,8 @@ namespace STCAPI.Controllers.ExcelReader
                         {
                             te.IsActive = false;
                             te.IsDeleted = true;
+                            te.UpdatedBy = model.UserName;
+                            te.UpdatedDate = DateTime.Now;
                         });
 
                         var deleteResponse = await _IInputVatDataFileRepository.DeleteEntity(uploadInvoiceDetails.TEntities.ToArray());
@@ -229,6 +257,7 @@ namespace STCAPI.Controllers.ExcelReader
                         dbModels.ForEach(data =>
                         {
                             data.UploadInvoiceDetailId = model.Id;
+                           
                         });
                         var inputDataFileResponse = await CreateInputVATDetail(dbModels, model.UserName);
 
@@ -394,6 +423,8 @@ namespace STCAPI.Controllers.ExcelReader
             var updateResponse = await _ISubsidryInvoiceAttachmentRepository.UpdateEntity(responseData.TEntities.FirstOrDefault());
             return Ok("Success");
         }
+
+
         #region PrivateMethod
 
         private List<VATRetunDetailModel> VATReturnExcelData(IFormFile inputFile)
