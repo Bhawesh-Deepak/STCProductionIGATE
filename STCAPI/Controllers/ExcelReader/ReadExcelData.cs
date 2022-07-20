@@ -774,8 +774,8 @@ namespace STCAPI.Controllers.ExcelReader
                 dbModel.InvoiceSource = item.InvoiceSource;
                 dbModel.InvoiceNumber = item.InvoiceNumber;
                 dbModel.InvoiceDocNumber = item.InvoiceDocNumber;
-                dbModel.InvoiceDate = item.InvoiceDate.GetDefaultIfStringNull<DateTime>();
-                dbModel.GLDate = item.GLDate.GetDefaultIfStringNull<DateTime>();
+                dbModel.InvoiceDate =IsValidDateTime(item.InvoiceDate)? item.InvoiceDate.GetDefaultIfStringNull<DateTime>(): null;
+                dbModel.GLDate =IsValidDateTime(item.GLDate)? item.GLDate.GetDefaultIfStringNull<DateTime>():null;
                 dbModel.TotalInvoiceAmount = item.TotalInvoiceAmount.GetDefaultIfStringNull<decimal>();
                 dbModel.InvoiceCurrency = item.InvoiceCurrency;
                 dbModel.CurrencyExchangeRate = item.CurrencyExchangeRate.GetDefaultIfStringNull<decimal>();
@@ -796,10 +796,10 @@ namespace STCAPI.Controllers.ExcelReader
                 dbModel.InvoiceLineNumber = item.InvoiceLineNumber.GetDefaultIfStringNull<int>();
                 dbModel.InvoiceLineDescription = item.InvoiceLineDescription.GetDefaultIfStringNull<string>();
                 dbModel.PONumber = item.PONumber.GetDefaultIfStringNull<string>();
-                dbModel.PoDate = item.PoDate.GetDefaultIfStringNull<DateTime>();
-                dbModel.ReleaseDate = item.ReleaseDate.GetDefaultIfStringNull<DateTime>();
+                dbModel.PoDate =IsValidDateTime(item.PoDate)? item.PoDate.GetDefaultIfStringNull<DateTime>():null;
+                dbModel.ReleaseDate =IsValidDateTime(item.ReleaseDate)? item.ReleaseDate.GetDefaultIfStringNull<DateTime>(): null;
                 dbModel.ReceiptNumber = item.ReceiptNumber.GetDefaultIfStringNull<string>();
-                dbModel.ReceiptDate = item.ReceiptDate.GetDefaultIfStringNull<DateTime>();
+                dbModel.ReceiptDate =IsValidDateTime(item.ReceiptDate)? item.ReceiptDate.GetDefaultIfStringNull<DateTime>(): null;
                 dbModel.PoItemNumber = item.PoItemNumber.GetDefaultIfStringNull<string>();
                 dbModel.PoItemDescription = item.PoItemDescription.GetDefaultIfStringNull<string>();
                 dbModel.Quantity = item.Quantity.GetDefaultIfStringNull<decimal>();
@@ -807,8 +807,8 @@ namespace STCAPI.Controllers.ExcelReader
                 dbModel.DiscountAmount = item.DiscountAmount.GetDefaultIfStringNull<decimal>();
                 dbModel.DiscountPercentage = item.DiscountPercentage.GetDefaultIfStringNull<decimal>();
                 dbModel.ContractNumber = item.ContractNumber.GetDefaultIfStringNull<string>();
-                dbModel.ContractStartDate = item.ContractStartDate.GetDefaultIfStringNull<DateTime>();
-                dbModel.ContractEndDate = item.ContractEndDate.GetDefaultIfStringNull<DateTime>();
+                dbModel.ContractStartDate =IsValidDateTime(item.ContractStartDate)? item.ContractStartDate.GetDefaultIfStringNull<DateTime>(): null;
+                dbModel.ContractEndDate =IsValidDateTime(item.ContractEndDate)? item.ContractEndDate.GetDefaultIfStringNull<DateTime>(): null;
                 dbModel.OriginalInvoiceNumberForDebitCreditNote = item.OriginalInvoiceNumberForDebitCreditNote;
                 dbModel.TaxLineNumber = item.TaxLineNumber.GetDefaultIfStringNull<int>();
                 dbModel.ProductType = item.ProductType;
@@ -829,7 +829,10 @@ namespace STCAPI.Controllers.ExcelReader
             return await Task.Run(() => dbModels);
 
         }
-
+        private bool IsValidDateTime(string dateTime) 
+        {
+            return DateTime.TryParse(dateTime, out DateTime ouDate);
+        }
         private async Task<bool> CreateInputVATDetail(List<InputVATDataFile> models, string userName)
         {
             models.ForEach(item =>
@@ -888,8 +891,8 @@ namespace STCAPI.Controllers.ExcelReader
                     dtoModel.InvoiceDocSequence = item.InvoiceDocSequence.GetDefaultIfStringNull<string>();
                     dtoModel.InvoiceSource = item.InvoiceSource.GetDefaultIfStringNull<string>();
                     dtoModel.InvoiceType = item.InvoiceType.GetDefaultIfStringNull<string>();
-                    dtoModel.InvoiceDate = item.InvoiceDate.GetDefaultIfStringNull<DateTime>();
-                    dtoModel.GLDate = item.GLDate.GetDefaultIfStringNull<DateTime>();
+                    dtoModel.InvoiceDate =IsValidDateTime(item.InvoiceDate)? item.InvoiceDate.GetDefaultIfStringNull<DateTime>(): null;
+                    dtoModel.GLDate =IsValidDateTime(item.GLDate)? item.GLDate.GetDefaultIfStringNull<DateTime>(): null;
                     dtoModel.InvoiceAmount = item.InvoiceAmount.GetDefaultIfStringNull<decimal>();
                     dtoModel.InvoiceCurrency = item.InvoiceCurrency.GetDefaultIfStringNull<string>();
                     dtoModel.CurrencyExchangeRate = item.CurrencyExchangeRate.GetDefaultIfStringNull<decimal>();
@@ -934,8 +937,8 @@ namespace STCAPI.Controllers.ExcelReader
                     dtoModel.ContractNumber = item.ContractNumber.GetDefaultIfStringNull<string>();
                     dtoModel.ContractDescription = item.ContractDescription.GetDefaultIfStringNull<string>();
 
-                    dtoModel.ContractStartDate = item.ContractStartDate.GetDefaultIfStringNull<DateTime>();
-                    dtoModel.ContractEndDate = item.ContractEndDate.GetDefaultIfStringNull<DateTime>();
+                    dtoModel.ContractStartDate =IsValidDateTime(item.ContractStartDate)? item.ContractStartDate.GetDefaultIfStringNull<DateTime>(): null;
+                    dtoModel.ContractEndDate = IsValidDateTime( item.ContractEndDate)?item.ContractEndDate.GetDefaultIfStringNull<DateTime>() :null;
                     dtoModel.OriginalInvoice = item.OriginalInvoice.GetDefaultIfStringNull<string>();
                     dtoModel.PoNumber = item.PONumber.GetDefaultIfStringNull<string>();
                     dtoModel.UniversalUniqueInvoiceIndentifier = item.UniversalUniqueInvoiceIdentifier.GetDefaultIfStringNull<string>();
