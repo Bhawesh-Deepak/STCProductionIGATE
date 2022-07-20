@@ -16,6 +16,11 @@ namespace STCAPI.Controllers.QueryValidation
     public class SqlQueryValidationController : ControllerBase
     {
         private readonly IGenericRepository<SqlQueryValidationModel, int> _sqlQueryValidationRepo;
+
+        /// <summary>
+        /// Inject required service to controller constructor
+        /// </summary>
+        /// <param name="sqlQueryRepo"></param>
         public SqlQueryValidationController(IGenericRepository<SqlQueryValidationModel, int> sqlQueryRepo)
         {
             _sqlQueryValidationRepo = sqlQueryRepo;
@@ -39,23 +44,38 @@ namespace STCAPI.Controllers.QueryValidation
                 dbModel.IsDeleted = false;
                 dbModel.CreatedBy = model.UserName;
                 dbModel.UserName = model.UserName;
+                dbModel.SqlQuery = model.SqlQuery;
 
                 var respons = await _sqlQueryValidationRepo.CreateEntity(new List<SqlQueryValidationModel>() { dbModel }.ToArray());
                 return Ok(respons);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
+                string exceptionMessage = ex.Message;
                 return BadRequest(new ResponseModel<SqlQueryValidationModel, int>());
             }
 
         }
-
+        /// <summary>
+        /// Get complete query for validation
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
         [Consumes("application/json")]
         public async Task<IActionResult> GetQuery()
         {
-            var respons = await _sqlQueryValidationRepo.GetAllEntities(x=>x.IsActive && !x.IsDeleted);
-            return Ok(respons);
+            try
+            {
+                var respons = await _sqlQueryValidationRepo.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+                return Ok(respons);
+            }
+            catch (Exception ex)
+            {
+                string exceptionMessage = ex.Message;
+                return BadRequest("Issue Occured, Please contact admin Team !");
+            }
+
         }
     }
 }

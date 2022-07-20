@@ -21,10 +21,17 @@ namespace STCAPI.Infrastructure.Implementation.GenericImplementation
         }
         public async Task<ResponseModel<TEntity, T>> CheckIsExists(Func<TEntity, bool> where)
         {
-            TEntity item = null;
-            IQueryable<TEntity> dbQuery = context.Set<TEntity>();
-            item = dbQuery.AsNoTracking().FirstOrDefault(where);
-            return  await Task.Run(() => new ResponseModel<TEntity, T>(item, null, "success", ResponseStatus.Success)); ;
+            try
+            {
+                TEntity item = null;
+                IQueryable<TEntity> dbQuery = context.Set<TEntity>();
+                item = dbQuery.AsNoTracking().FirstOrDefault(where);
+                return await Task.Run(() => new ResponseModel<TEntity, T>(item, null, "success", ResponseStatus.Success));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
 
         public async Task<ResponseModel<TEntity, T>> CreateEntity(TEntity[] model)
@@ -37,11 +44,7 @@ namespace STCAPI.Infrastructure.Implementation.GenericImplementation
             }
             catch (Exception ex)
             {
-                if (ex.InnerException.Message.Contains("The duplicate key "))
-                {
-                    return new ResponseModel<TEntity, T>(null, null, "Already Exists", ResponseStatus.AlreadyExists);
-                }
-                return new ResponseModel<TEntity, T>(null, null, ex.Message, ResponseStatus.Error);
+                throw new Exception(ex.Message, ex);
             }
         }
 
@@ -55,28 +58,36 @@ namespace STCAPI.Infrastructure.Implementation.GenericImplementation
             }
             catch (Exception ex)
             {
-                return new ResponseModel<TEntity, T>(null, null, ex.Message, ResponseStatus.Error);
+                throw new Exception(ex.Message, ex);
             }
         }
 
         public async Task<ResponseModel<TEntity, T>> GetAllEntities(Func<TEntity, bool> where)
         {
-            IQueryable<TEntity> dbQuery = context.Set<TEntity>();
-            var tList = dbQuery.AsNoTracking().Where(where).ToList<TEntity>();
-            return await Task.Run(() => new ResponseModel<TEntity, T>(null, tList, "success", ResponseStatus.Success));
+            try
+            {
+                IQueryable<TEntity> dbQuery = context.Set<TEntity>();
+                var tList = dbQuery.AsNoTracking().Where(where).ToList<TEntity>();
+                return await Task.Run(() => new ResponseModel<TEntity, T>(null, tList, "success", ResponseStatus.Success));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
+
         }
 
-        public async  Task<ResponseModel<TEntity, T>> UpdateEntity(TEntity model)
+        public async Task<ResponseModel<TEntity, T>> UpdateEntity(TEntity model)
         {
             try
             {
                 context.UpdateRange(model);
                 await context.SaveChangesAsync();
-                return new ResponseModel<TEntity, T>(null, null, "Updated", ResponseStatus.Updated); 
+                return new ResponseModel<TEntity, T>(null, null, "Updated", ResponseStatus.Updated);
             }
             catch (Exception ex)
             {
-                return new ResponseModel<TEntity, T>(null, null, ex.Message, ResponseStatus.Error);
+                throw new Exception(ex.Message, ex);
             }
         }
     }

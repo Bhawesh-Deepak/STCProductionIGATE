@@ -25,28 +25,50 @@ namespace STCAPI.Controllers.CopyFolders
         [HttpGet]
         public async Task<IActionResult> FolderCopy(string sourceFolder, string destFolder)
         {
-            CopyFolder(sourceFolder, destFolder);
-            string[] folders = Directory.GetDirectories(sourceFolder);
-            foreach (string folder in folders)
+            try
             {
-                string name = Path.GetFileName(folder);
-                string dest = Path.Combine(destFolder, name);
-                CopyFolder(folder, dest);
+                CopyFolder(sourceFolder, destFolder);
+                string[] folders = Directory.GetDirectories(sourceFolder);
+                foreach (string folder in folders)
+                {
+                    string name = Path.GetFileName(folder);
+                    string dest = Path.Combine(destFolder, name);
+                    CopyFolder(folder, dest);
+                }
+                return await Task.Run(() => Ok("Folder copying is in progress...."));
             }
-            return await Task.Run(() => Ok("Folder copying is in progress...."));
+            catch (Exception ex)
+            {
+                string exceptionMessage = ex.Message;
+                return BadRequest("Issue Occured, Please contact admin Team !");
+            }
+
         }
 
+        /// <summary>
+        /// code to copy file from one folder to another folder
+        /// </summary>
+        /// <param name="sourceFolder"></param>
+        /// <param name="destFolder"></param>
         private static void CopyFolder(string sourceFolder, string destFolder)
         {
-            if (!Directory.Exists(destFolder))
-                Directory.CreateDirectory(destFolder);
-            string[] files = Directory.GetFiles(sourceFolder);
-            foreach (string file in files)
+            try
             {
-                string name = Path.GetFileName(file);
-                string dest = Path.Combine(destFolder, name);
-                System.IO.File.Copy(file, dest);
+                if (!Directory.Exists(destFolder))
+                    Directory.CreateDirectory(destFolder);
+                string[] files = Directory.GetFiles(sourceFolder);
+                foreach (string file in files)
+                {
+                    string name = Path.GetFileName(file);
+                    string dest = Path.Combine(destFolder, name);
+                    System.IO.File.Copy(file, dest);
+                }
             }
+            catch (Exception ex)
+            {
+                string exceptionMessage = ex.Message;
+            }
+
         }
     }
 }
