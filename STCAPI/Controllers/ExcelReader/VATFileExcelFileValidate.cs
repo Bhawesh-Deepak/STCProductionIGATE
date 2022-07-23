@@ -3,8 +3,11 @@ using ExcelDataReader;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using STAAPI.Infrastructure.Repository.GenericRepository;
+using STCAPI.Core.Entities.Logger;
 using STCAPI.Core.ViewModel.RequestModel;
 using STCAPI.Core.ViewModel.ResponseModel;
+using STCAPI.ErrorLogService;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -15,17 +18,32 @@ using System.Threading.Tasks;
 
 namespace STCAPI.Controllers.ExcelReader
 {
+    /// <summary>
+    /// 
+    /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class VATFileExcelFileValidate : ControllerBase
     {
         private readonly IHostingEnvironment _IHostingEnviroment;
+        private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
 
-        public VATFileExcelFileValidate(IHostingEnvironment hostingEnvironment)
+        /// <summary>
+        /// inject required service to controller constructor
+        /// </summary>
+        /// <param name="hostingEnvironment"></param>
+        /// <param name="errorLogRepository"></param>
+        public VATFileExcelFileValidate(IHostingEnvironment hostingEnvironment, IGenericRepository<ErrorLogModel, int> errorLogRepository)
         {
             _IHostingEnviroment = hostingEnvironment;
+            _IErrorLogRepository = errorLogRepository;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<IActionResult> ValidateVATFile([FromForm] InvoiceDetail model)
         {
@@ -33,7 +51,7 @@ namespace STCAPI.Controllers.ExcelReader
             {
                 IDictionary<int, (string, string)> errorResult = new Dictionary<int, (string, string)>();
 
-               
+
                 var invoiceFiles = new List<IFormFile>() { model.InvoiceExcelFile };
 
                 var uploadFileDetails = await new BlobHelper().UploadDocument(invoiceFiles, _IHostingEnviroment);
@@ -48,10 +66,18 @@ namespace STCAPI.Controllers.ExcelReader
             }
             catch (Exception ex)
             {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(VATFileExcelFileValidate),
+                    nameof(ValidateVATFile), ex.Message, ex.ToString());
+
                 return BadRequest("Error");
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="inputFile"></param>
+        /// <returns></returns>
         private List<InputVATFileVm> InputVATExcelData(IFormFile inputFile)
         {
             Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
@@ -146,26 +172,38 @@ namespace STCAPI.Controllers.ExcelReader
             }
             catch (Exception ex)
             {
-                message = ex.Message;
-                return null;
+                throw new Exception(ex.Message, ex);
             }
 
             return models;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="error"></param>
+        /// <returns></returns>
         private List<SubsidryErrorDetail> GetErrorDetails(IDictionary<int, (string, string)> error)
         {
-            var models = new List<SubsidryErrorDetail>();
-            foreach (var data in error)
+            try
             {
-                var model = new SubsidryErrorDetail();
-                model.PropertyName = data.Value.Item1;
-                model.ErrorDetail = data.Value.Item2;
-                model.rowNumber = data.Key;
+                var models = new List<SubsidryErrorDetail>();
+                foreach (var data in error)
+                {
+                    var model = new SubsidryErrorDetail();
+                    model.PropertyName = data.Value.Item1;
+                    model.ErrorDetail = data.Value.Item2;
+                    model.rowNumber = data.Key;
 
-                models.Add(model);
+                    models.Add(model);
+                }
+                return models;
             }
-            return models;
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
+
         }
     }
 }

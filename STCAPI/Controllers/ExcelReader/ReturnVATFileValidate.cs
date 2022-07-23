@@ -3,8 +3,11 @@ using ExcelDataReader;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
+using STAAPI.Infrastructure.Repository.GenericRepository;
+using STCAPI.Core.Entities.Logger;
 using STCAPI.Core.ViewModel.RequestModel;
 using STCAPI.Core.ViewModel.ResponseModel;
+using STCAPI.ErrorLogService;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -14,17 +17,31 @@ using System.Threading.Tasks;
 
 namespace STCAPI.Controllers.ExcelReader
 {
+    /// <summary>
+    /// 
+    /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class ReturnVATFileValidate : ControllerBase
     {
         private readonly IHostingEnvironment _IHostingEnviroment;
+        private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
 
-        public ReturnVATFileValidate(IHostingEnvironment hostingEnvironment)
+        /// <summary>
+        /// Inject required service to the controller constructor
+        /// </summary>
+        /// <param name="hostingEnvironment"></param>
+        public ReturnVATFileValidate(IHostingEnvironment hostingEnvironment, IGenericRepository<ErrorLogModel, int> errorLogRepository)
         {
             _IHostingEnviroment = hostingEnvironment;
+            _IErrorLogRepository = errorLogRepository;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<IActionResult> ValidateReturnFile([FromForm] InvoiceDetail model)
         {
@@ -37,11 +54,15 @@ namespace STCAPI.Controllers.ExcelReader
             }
             catch (Exception ex)
             {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(ReturnVATFileValidate),
+                       nameof(ValidateReturnFile), ex.Message, ex.ToString());
+
                 return BadRequest("Error");
             }
 
         }
 
+        #region ObsoleteMethod
         private List<SubsidryErrorDetail> GetErrorDetails(IDictionary<int, (string, string)> error)
         {
             var models = new List<SubsidryErrorDetail>();
@@ -56,6 +77,13 @@ namespace STCAPI.Controllers.ExcelReader
             return models;
         }
 
+        #endregion
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="inputFile"></param>
+        /// <returns></returns>
         private List<VATRetunDetailModel> VATReturnExcelData(IFormFile inputFile)
         {
             Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
@@ -103,8 +131,7 @@ namespace STCAPI.Controllers.ExcelReader
             }
             catch (Exception ex)
             {
-                message = ex.Message;
-                return null;
+                throw new Exception(ex.Message, ex);
             }
             models.ForEach(data =>
             {

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using STAAPI.Infrastructure.Repository.GenericRepository;
 using STCAPI.Core.Entities.IGATE;
+using STCAPI.Core.Entities.Logger;
+using STCAPI.ErrorLogService;
 using STCAPI.Model;
 using System;
 using System.Collections.Generic;
@@ -22,14 +24,17 @@ namespace STCAPI.Controllers.IGATE
     public class IGATEApiController : ControllerBase
     {
         private readonly IGenericRepository<VATRequestUpdate, int> _IVATRequestUpdateRepo;
+        private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
 
         /// <summary>
         /// Inject required service to controller contructor
         /// </summary>
         /// <param name="vatRequestUpdateRepo"></param>
-        public IGATEApiController(IGenericRepository<VATRequestUpdate, int> vatRequestUpdateRepo)
+        public IGATEApiController(IGenericRepository<VATRequestUpdate, int> vatRequestUpdateRepo,
+            IGenericRepository<ErrorLogModel, int> errorLogRepository)
         {
             _IVATRequestUpdateRepo = vatRequestUpdateRepo;
+            _IErrorLogRepository = errorLogRepository;
         }
         /// <summary>
         /// Authenticate Response From IGATE API
@@ -42,19 +47,27 @@ namespace STCAPI.Controllers.IGATE
         [Consumes("application/json")]
         public async Task<IActionResult> GetResponseTokenOnAuthenticate()
         {
-            using HttpClient client = new HttpClient { BaseAddress = new Uri("https://10.21.132.47:9016/gateway/") };
-            var stringContent = new StringContent(JsonConvert.SerializeObject(GetAuthModel()), Encoding.UTF8, "application/json");
-            var response = await client.PostAsync("stcOeOAuthConnection/1.0/accessToken", stringContent);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var responseDetails = await response.Content.ReadAsStringAsync();
-                return Ok(responseDetails);
+                using HttpClient client = new HttpClient { BaseAddress = new Uri("https://10.21.132.47:9016/gateway/") };
+                var stringContent = new StringContent(JsonConvert.SerializeObject(GetAuthModel()), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("stcOeOAuthConnection/1.0/accessToken", stringContent);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseDetails = await response.Content.ReadAsStringAsync();
+                    return Ok(responseDetails);
+                }
+                else
+                {
+                    return BadRequest("Something wents wrong.");
+                }
             }
-            else
+            catch (Exception ex)
             {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(IGATEApiController),
+                           nameof(GetResponseTokenOnAuthenticate), ex.Message, ex.ToString());
                 return BadRequest("Something wents wrong.");
             }
-
         }
 
 
@@ -70,19 +83,28 @@ namespace STCAPI.Controllers.IGATE
 
         public async Task<IActionResult> VATRequestDetails(RequestModel model, [FromHeader] string token)
         {
-            using HttpClient client = new HttpClient { BaseAddress = new Uri("https://10.21.132.47:9016/gateway/") };
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            var stringContent = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
-            var response = await client.PostAsync("stcOeEsbVATServices/1.0/vat/en/initiate", stringContent);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var responseDetails = await response.Content.ReadAsStringAsync();
-                var responseData = JsonConvert.DeserializeObject<BPMResponseModel>(responseDetails);
+                using HttpClient client = new HttpClient { BaseAddress = new Uri("https://10.21.132.47:9016/gateway/") };
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var stringContent = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("stcOeEsbVATServices/1.0/vat/en/initiate", stringContent);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseDetails = await response.Content.ReadAsStringAsync();
+                    var responseData = JsonConvert.DeserializeObject<BPMResponseModel>(responseDetails);
 
-                return Ok(responseData);
+                    return Ok(responseData);
+                }
+                else
+                {
+                    return BadRequest("Something wents wrong.");
+                }
             }
-            else
-            {
+            catch (Exception ex) {
+
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(IGATEApiController),
+                          nameof(VATRequestDetails), ex.Message, ex.ToString());
                 return BadRequest("Something wents wrong.");
             }
         }
@@ -120,6 +142,9 @@ namespace STCAPI.Controllers.IGATE
             }
             catch (Exception ex)
             {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(IGATEApiController),
+                       nameof(UpdateVATAPI), ex.Message, ex.ToString());
+
                 return BadRequest(ex.Message);
             }
         }
@@ -133,26 +158,41 @@ namespace STCAPI.Controllers.IGATE
         [Consumes("application/json")]
         public async Task<IActionResult> GetVATRequest()
         {
-            var response = await _IVATRequestUpdateRepo.GetAllEntities(x => x.IsActive && !x.IsDeleted);
-            var models = new List<UpdateFormModel>();
-
-            response.TEntities.ToList().ForEach(data =>
+            try
             {
-                var model = new UpdateFormModel();
-                model.FormId = data.FormId;
-                model.Decision = data.Decision;
-                model.Comments = data.Comments;
-                model.ApproverEmail = data.ApproverEmail;
-                model.PendingwithEmail = data.PendingwithEmail;
-                model.RequestStatus = data.RequestStatus;
+                var response = await _IVATRequestUpdateRepo.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+                var models = new List<UpdateFormModel>();
 
-                models.Add(model);
-            });
-            return Ok(models);
+                response.TEntities.ToList().ForEach(data =>
+                {
+                    var model = new UpdateFormModel();
+                    model.FormId = data.FormId;
+                    model.Decision = data.Decision;
+                    model.Comments = data.Comments;
+                    model.ApproverEmail = data.ApproverEmail;
+                    model.PendingwithEmail = data.PendingwithEmail;
+                    model.RequestStatus = data.RequestStatus;
+
+                    models.Add(model);
+                });
+                return Ok(models);
+            }
+            catch (Exception ex)
+            {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(IGATEApiController),
+                    nameof(UpdateVATAPI), ex.Message, ex.ToString());
+
+                return BadRequest(ex.Message);
+            }
+
         }
 
         #region PrivateFields
 
+        /// <summary>
+        /// client_id and client_scerete and grant_type following are the value which are valid for IGATE API 
+        /// </summary>
+        /// <returns></returns>
         private AuthenticationModel GetAuthModel()
         {
             return new AuthenticationModel()

@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using STAAPI.Infrastructure.Repository.GenericRepository;
+using STCAPI.Core.Entities.Logger;
 using STCAPI.Core.Entities.MenuSubMenu;
 using STCAPI.Core.ViewModel.RequestModel;
 using STCAPI.Core.ViewModel.ResponseModel;
+using STCAPI.ErrorLogService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +24,8 @@ namespace STCAPI.Controllers.MenuSubMenuAccess
     {
         private readonly IGenericRepository<MenuSubMenuModel, int> _IMenuSubMenuRepository;
         private readonly IGenericRepository<MenuSubMenuAccessModel, int> _IMenuSubMenuAccessRepository;
+        private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
+
 
         /// <summary>
         /// Inject required service to the controller
@@ -29,10 +33,12 @@ namespace STCAPI.Controllers.MenuSubMenuAccess
         /// Table Used: MenuSubMenu
         /// <param name="menuSubMenuRepository"></param>
         /// <param name="menuSubMenuAccessReopsitory"></param>
-        public MenuSubMenuAccessController(IGenericRepository<MenuSubMenuModel, int> menuSubMenuRepository, IGenericRepository<MenuSubMenuAccessModel, int> menuSubMenuAccessReopsitory)
+        public MenuSubMenuAccessController(IGenericRepository<MenuSubMenuModel, int> menuSubMenuRepository, 
+            IGenericRepository<MenuSubMenuAccessModel, int> menuSubMenuAccessReopsitory, IGenericRepository<ErrorLogModel, int> errorLogRepository)
         {
             _IMenuSubMenuRepository = menuSubMenuRepository;
             _IMenuSubMenuAccessRepository = menuSubMenuAccessReopsitory;
+            _IErrorLogRepository = errorLogRepository;
         }
 
         /// <summary>
@@ -69,6 +75,10 @@ namespace STCAPI.Controllers.MenuSubMenuAccess
             catch (Exception ex)
             {
                 string exceptionMessage = ex.Message;
+
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(MenuSubMenuAccessController),
+                        nameof(CreateMenuSubMenu), ex.Message, ex.ToString());
+
                 return BadRequest("Issue Occured, Please contact admin Team !");
             }
 
@@ -122,6 +132,10 @@ namespace STCAPI.Controllers.MenuSubMenuAccess
             catch (Exception ex)
             {
                 string exceptionMessage = ex.Message;
+
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(MenuSubMenuAccessController),
+                         nameof(MenuSubMenuAccess), ex.Message, ex.ToString());
+
                 return BadRequest("Issue Occured, Please contact admin Team !");
             }
         }
@@ -193,6 +207,10 @@ namespace STCAPI.Controllers.MenuSubMenuAccess
             catch (Exception ex)
             {
                 string exceptionMessage = ex.Message;
+
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(MenuSubMenuAccessController),
+                     nameof(GetMenuSubMenuAccess), ex.Message, ex.ToString());
+
                 return BadRequest("Issue Occured, Please contact admin Team !");
             }
         }

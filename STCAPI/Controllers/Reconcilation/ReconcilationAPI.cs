@@ -4,9 +4,12 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using STAAPI.Infrastructure.Repository.GenericRepository;
 using STAAPI.Infrastructure.Repository.STCVATRepository;
+using STCAPI.Core.Entities.Logger;
 using STCAPI.Core.Entities.Reconcilation;
 using STCAPI.Core.ViewModel.RequestModel;
+using STCAPI.ErrorLogService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +25,7 @@ namespace STCAPI.Controllers.Reconcilation
         private readonly IReconcilationSummaryRepository _IReconcilationSummaryRepo;
         private readonly IHostingEnvironment _IHostingEnviroment;
         private readonly INotificationService _InotificationService;
+        private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
 
         /// <summary>
         /// Inject required service to constructor
@@ -30,11 +34,12 @@ namespace STCAPI.Controllers.Reconcilation
         /// <param name="hostingEnvironment"></param>
         /// <param name="notificationService"></param>
         public ReconcilationAPI(IReconcilationSummaryRepository iReconcilationSummaryRepo,
-            IHostingEnvironment hostingEnvironment, INotificationService notificationService)
+            IHostingEnvironment hostingEnvironment, INotificationService notificationService, IGenericRepository<ErrorLogModel, int> errorLogRepository)
         {
             _IReconcilationSummaryRepo = iReconcilationSummaryRepo;
             _IHostingEnviroment = hostingEnvironment;
             _InotificationService = notificationService;
+            _IErrorLogRepository = errorLogRepository;
         }
 
         /// <summary>
@@ -72,8 +77,13 @@ namespace STCAPI.Controllers.Reconcilation
                 }
                 return Ok(response);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 string exceptionMessage = ex.Message;
+
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(ReconcilationAPI),
+                    nameof(Index), ex.Message, ex.ToString());
+
                 return BadRequest("Issue Occured, Please contact admin Team !");
             }
         }
@@ -85,9 +95,17 @@ namespace STCAPI.Controllers.Reconcilation
         /// <returns></returns>
         private async Task<bool> SendEmailNotification(ReconcilationModel model)
         {
-            var emailResponse = await _InotificationService
+            try
+            {
+                var emailResponse = await _InotificationService
                         .SendMailNotification(model.EmailTo.Split(";").ToList(), model.EmailTemplate, model.EmailSubject);
-            return emailResponse;
+                return emailResponse;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
+
         }
     }
 }
