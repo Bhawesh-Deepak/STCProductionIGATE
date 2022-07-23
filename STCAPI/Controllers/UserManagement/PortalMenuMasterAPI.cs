@@ -5,8 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 using STAAPI.Infrastructure.Repository.GenericRepository;
 using STAAPI.Infrastructure.Repository.PortalAccessRepository;
 using STCAPI.Core.Entities.Common;
+using STCAPI.Core.Entities.Logger;
 using STCAPI.Core.Entities.UserManagement;
 using STCAPI.Core.ViewModel.ResponseModel;
+using STCAPI.ErrorLogService;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -17,6 +19,9 @@ using System.Threading.Tasks;
 
 namespace STCAPI.Controllers.UserManagement
 {
+    /// <summary>
+    /// PortalMenuMasterAPI
+    /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
     [EnableCors("AllowAnyOrigin")]
@@ -26,6 +31,8 @@ namespace STCAPI.Controllers.UserManagement
         private readonly IGenericRepository<PortalAccess, int> _IPortalAccessRepository;
         private readonly IPortalAccessRepository _IPortalMenuAccessRepository;
         private readonly IGenericRepository<ObjectMapping, int> _IObjectMappingRepository;
+        private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
+
 
         /// <summary>
         /// Constructor for Portal Master API to inject the services
@@ -33,12 +40,15 @@ namespace STCAPI.Controllers.UserManagement
         /// <param name="portalMenuReposiory"></param>
         /// <param name="portalAcessRepo"></param>
         public PortalMenuMasterAPI(IGenericRepository<PortalMenuMaster, int> portalMenuReposiory,
-            IGenericRepository<PortalAccess, int> portalAcessRepo, IGenericRepository<ObjectMapping, int> objectMappingRepo, IPortalAccessRepository portalMenuAccessRepository)
+            IGenericRepository<PortalAccess, int> portalAcessRepo,
+            IGenericRepository<ObjectMapping, int> objectMappingRepo,
+            IPortalAccessRepository portalMenuAccessRepository, IGenericRepository<ErrorLogModel, int> errorLogRepository)
         {
             _IPortalMenuRepository = portalMenuReposiory;
             _IPortalAccessRepository = portalAcessRepo;
             _IPortalMenuAccessRepository = portalMenuAccessRepository;
             _IObjectMappingRepository = objectMappingRepo;
+            _IErrorLogRepository = errorLogRepository;
         }
 
         /// <summary>
@@ -46,63 +56,105 @@ namespace STCAPI.Controllers.UserManagement
         /// </summary>
         /// <param name="formFile"></param>
         /// <returns></returns>
-        
+
         [HttpPost]
         public async Task<IActionResult> CreatePortalMenu([FromForm] PortalMenuMaster formFile)
         {
-            var models = await GetPortalMenuList(formFile.PortalFile);
-            var response = await _IPortalMenuRepository.CreateEntity(models.ToArray());
-            return Ok(response.ResponseStatus);
+            try
+            {
+                var models = await GetPortalMenuList(formFile.PortalFile);
+                var response = await _IPortalMenuRepository.CreateEntity(models.ToArray());
+                return Ok(response.ResponseStatus);
+            }
+            catch (Exception ex)
+            {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(PortalMenuMasterAPI),
+                            nameof(CreatePortalMenu), ex.Message, ex.ToString());
+
+                return BadRequest("Something wents wrong, Please contact admin Team !");
+            }
+
         }
 
+        /// <summary>
+        /// Get User Access Details
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <returns></returns>
         [HttpGet]
         public async Task<IActionResult> GetUserAccess(string userName)
         {
-            var objectMappingDetails = await _IObjectMappingRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
-
-            var userAccessPortalModels = await _IPortalAccessRepository.
-                GetAllEntities(x => x.IsActive && !x.IsDeleted && x.UserName == userName);
-
-            objectMappingDetails.TEntities.ToList().ForEach(data =>
+            try
             {
-                userAccessPortalModels.TEntities.ToList().ForEach(item =>
+                var objectMappingDetails = await _IObjectMappingRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+
+                var userAccessPortalModels = await _IPortalAccessRepository.
+                    GetAllEntities(x => x.IsActive && !x.IsDeleted && x.UserName == userName);
+
+                objectMappingDetails.TEntities.ToList().ForEach(data =>
                 {
-                    if (data.Id == item.PortalId)
+                    userAccessPortalModels.TEntities.ToList().ForEach(item =>
                     {
-                        data.Flag = 1;
-                    }
+                        if (data.Id == item.PortalId)
+                        {
+                            data.Flag = 1;
+                        }
+                    });
+
                 });
 
-            });
+                return Ok(objectMappingDetails);
+            }
+            catch (Exception ex)
+            {
 
-            return Ok(objectMappingDetails);
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(PortalMenuMasterAPI),
+                                 nameof(GetUserAccess), ex.Message, ex.ToString());
+
+                return BadRequest("Something wents wrong, Please contact admin Team !");
+            }
         }
 
+        /// <summary>
+        /// Create User Detail Access
+        /// </summary>
+        /// <param name="portalAccesses"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<IActionResult> CreateUserRight(List<PortalAccess> portalAccesses)
         {
-            portalAccesses.ForEach(data =>
+            try
             {
-                data.CreatedBy = "Bhavesh Deepak";
-                data.CreatedDate = DateTime.Now;
-                data.IsActive = true;
-                data.IsDeleted = false;
-            });
+                portalAccesses.ForEach(data =>
+                {
+                    data.CreatedBy = "Bhavesh Deepak";
+                    data.CreatedDate = DateTime.Now;
+                    data.IsActive = true;
+                    data.IsDeleted = false;
+                });
 
-            var deleteModel = await _IPortalAccessRepository.GetAllEntities(x => x.UserName.ToUpper().Trim() ==
-             portalAccesses.First().UserName.Trim().ToUpper());
+                var deleteModel = await _IPortalAccessRepository.GetAllEntities(x => x.UserName.ToUpper().Trim() ==
+                 portalAccesses.First().UserName.Trim().ToUpper());
 
-            deleteModel.TEntities.ToList().ForEach(x => { 
-                x.IsActive = false;
-                x.IsDeleted = true;
-            });
+                deleteModel.TEntities.ToList().ForEach(x =>
+                {
+                    x.IsActive = false;
+                    x.IsDeleted = true;
+                });
 
-            var deleteResponse= await _IPortalAccessRepository.DeleteEntity(deleteModel.TEntities.ToArray());
+                var deleteResponse = await _IPortalAccessRepository.DeleteEntity(deleteModel.TEntities.ToArray());
 
-            var response = await _IPortalAccessRepository.CreateEntity(portalAccesses.ToArray());
+                var response = await _IPortalAccessRepository.CreateEntity(portalAccesses.ToArray());
 
-            return Ok(response.Message);
+                return Ok(response.Message);
+            }
+            catch (Exception ex)
+            {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(PortalMenuMasterAPI),
+                 nameof(CreateUserRight), ex.Message, ex.ToString());
 
+                return BadRequest("Something wents wrong, Please contact admin Team !");
+            }
         }
 
 
@@ -162,8 +214,7 @@ namespace STCAPI.Controllers.UserManagement
             }
             catch (Exception ex)
             {
-                message = ex.Message;
-                return null;
+                throw new Exception(ex.Message, ex);
             }
 
             return await Task.Run(() => models);
