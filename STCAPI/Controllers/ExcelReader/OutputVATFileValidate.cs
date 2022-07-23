@@ -3,8 +3,11 @@ using ExcelDataReader;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using STAAPI.Infrastructure.Repository.GenericRepository;
+using STCAPI.Core.Entities.Logger;
 using STCAPI.Core.ViewModel.RequestModel;
 using STCAPI.Core.ViewModel.ResponseModel;
+using STCAPI.ErrorLogService;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -22,14 +25,17 @@ namespace STCAPI.Controllers.ExcelReader
     public class OutputVATFileValidate : ControllerBase
     {
         private readonly IHostingEnvironment _IHostingEnviroment;
+        private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
 
         /// <summary>
         /// Inject required service to controller constructor
         /// </summary>
         /// <param name="hostingEnvironment"></param>
-        public OutputVATFileValidate(IHostingEnvironment hostingEnvironment)
+        /// <param name="errorLogModelRepo"></param>
+        public OutputVATFileValidate(IHostingEnvironment hostingEnvironment, IGenericRepository<ErrorLogModel, int>  errorLogModelRepo)
         {
             _IHostingEnviroment = hostingEnvironment;
+            _IErrorLogRepository = errorLogModelRepo;
         }
 
         /// <summary>
@@ -51,6 +57,7 @@ namespace STCAPI.Controllers.ExcelReader
                     _IHostingEnviroment);
 
                 var OutputVATModel = await Task.Run(() => OutputVATExcelFle(model.InvoiceExcelFile));
+
                 errorResult = OutputVATValidationRule.ValidateOutputVatData(OutputVATModel);
 
                 var errorDetails = GetErrorDetails(errorResult);
@@ -59,11 +66,19 @@ namespace STCAPI.Controllers.ExcelReader
             }
             catch (Exception ex)
             {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(OutputVATFileValidate),
+                 nameof(ValidateOutPutFile), ex.Message, ex.ToString());
+
                 return BadRequest("Internal server error. Please contact admin");
             }
 
         }
 
+        /// <summary>
+        /// Find the complete detail of VAT File from Excel Fields 
+        /// </summary>
+        /// <param name="inputFile"></param>
+        /// <returns></returns>
         private List<OutPutVATModel> OutputVATExcelFle(IFormFile inputFile)
         {
             Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
@@ -157,13 +172,17 @@ namespace STCAPI.Controllers.ExcelReader
             }
             catch (Exception ex)
             {
-                message = ex.Message;
-                return null;
+                throw new Exception(ex.Message, ex);
             }
 
             return models;
         }
 
+        /// <summary>
+        /// Get the complete error details which are present in Excel File.
+        /// </summary>
+        /// <param name="error"></param>
+        /// <returns></returns>
         private List<SubsidryErrorDetail> GetErrorDetails(IDictionary<int, (string, string)> error)
         {
             var models = new List<SubsidryErrorDetail>();

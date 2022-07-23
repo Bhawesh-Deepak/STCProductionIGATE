@@ -7,10 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using STAAPI.Infrastructure.Repository.GenericRepository;
 using STCAPI.Core.Entities.Enums;
+using STCAPI.Core.Entities.Logger;
 using STCAPI.Core.Entities.Subsidry;
 using STCAPI.Core.Entities.VATDetailUpload;
 using STCAPI.Core.ViewModel.RequestModel;
 using STCAPI.Core.ViewModel.ResponseModel;
+using STCAPI.ErrorLogService;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -39,7 +41,7 @@ namespace STCAPI.Controllers.ExcelReader
         private readonly IGenericRepository<UploadInvoiceDetail, int> _IUploadInvoiceRepository;
         private readonly IGenericRepository<SubsidryUserMapping, int> _IUserSubsidryUserMapping;
         private readonly IGenericRepository<SubsidryInvoiceAttachment, int> _ISubsidryInvoiceAttachmentRepository;
-
+        private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
 
 
         private readonly ILogger<ReadExcelData> _logger;
@@ -50,8 +52,8 @@ namespace STCAPI.Controllers.ExcelReader
             IGenericRepository<VATReturnModel, int> vatReturnModelRepository,
             IGenericRepository<UploadInvoiceDetail, int> uploadInvoiceRepo,
             ILogger<ReadExcelData> logger, IGenericRepository<SubsidryUserMapping, int> userSubsidryMapping,
-            IGenericRepository<SubsidryInvoiceAttachment, int> subsidryInvoiceAttachmentRepository
-            )
+            IGenericRepository<SubsidryInvoiceAttachment, int> subsidryInvoiceAttachmentRepository,
+            IGenericRepository<ErrorLogModel, int> errorLogModelRepo)
         {
             _IHostingEnviroment = hostingEnvironment;
             _IInputVatDataFileRepository = inputVATDatFileRepository;
@@ -62,6 +64,7 @@ namespace STCAPI.Controllers.ExcelReader
             _logger = logger;
             _IUserSubsidryUserMapping = userSubsidryMapping;
             _ISubsidryInvoiceAttachmentRepository = subsidryInvoiceAttachmentRepository;
+            _IErrorLogRepository = errorLogModelRepo;
 
         }
 
@@ -177,6 +180,9 @@ namespace STCAPI.Controllers.ExcelReader
             catch (Exception ex)
             {
                 string exception = ex.Message;
+
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(ReadExcelData),
+                   nameof(UploadExcelData), exception, ex.ToString());
             }
             return await Task.Run(() => BadRequest("Somthing wents wrong Please contact admin Team.."));
         }
@@ -191,31 +197,7 @@ namespace STCAPI.Controllers.ExcelReader
         /// <param name="trialAttachmentList"></param>
         /// <param name="uploadInvoiceId"></param>
         /// <returns></returns>
-        private async Task UploadSubsidryAttachment(InvoiceDetail model, List<string> inputAttachmentList, List<string> outPutAttachmentList, List<string> returnAttachmentList, List<string> trialAttachmentList, int uploadInvoiceId)
-        {
-            var counts = new List<int>() { inputAttachmentList.Count(), outPutAttachmentList.Count(), returnAttachmentList.Count(), trialAttachmentList.Count() };
-            int maxCount = counts.Max();
-            var models = new List<SubsidryInvoiceAttachment>();
 
-            for (int i = 0; i < maxCount; i++)
-            {
-                var subsidryModel = new SubsidryInvoiceAttachment()
-                {
-                    UploadInvoiceId = uploadInvoiceId,
-                    InputAttachmentDetails = inputAttachmentList.ElementAtOrDefault(i) ?? string.Empty,
-                    OutPutAttachmentDetails = outPutAttachmentList.ElementAtOrDefault(i) ?? string.Empty,
-                    TrialAttachmentDetails = trialAttachmentList.ElementAtOrDefault(i) ?? string.Empty,
-                    ReturnAttachmentDetails = returnAttachmentList.ElementAtOrDefault(i) ?? string.Empty,
-                    CreatedBy = model.UserName
-                };
-
-                models.Add(subsidryModel);
-            }
-
-
-
-            var uploadAttachmentResponse = await _ISubsidryInvoiceAttachmentRepository.CreateEntity(models.ToArray());
-        }
 
         /// <summary>
         /// Get all the Upload Excel FIle Details
@@ -224,15 +206,29 @@ namespace STCAPI.Controllers.ExcelReader
         [HttpGet]
         public async Task<IActionResult> GetExcelArchiveDetails()
         {
-            var response = await _IUploadInvoiceRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
-            return Ok(response);
+            try
+            {
+                var response = await _IUploadInvoiceRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(ReadExcelData),
+                   nameof(GetExcelArchiveDetails), ex.Message, ex.ToString());
+
+                return BadRequest("Something wents wrong, Please contact Admin Team !");
+            }
+
         }
 
-
+        /// <summary>
+        /// Update the subsisdry Information details
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<IActionResult> UpdateSubsidry([FromForm] UpdateSubsidryVm model)
         {
-
             try
             {
                 var attachment = await new BlobHelper().UploadDocument(model.InvoiceFile, _IHostingEnviroment);
@@ -257,7 +253,7 @@ namespace STCAPI.Controllers.ExcelReader
                         dbModels.ForEach(data =>
                         {
                             data.UploadInvoiceDetailId = model.Id;
-                           
+
                         });
                         var inputDataFileResponse = await CreateInputVATDetail(dbModels, model.UserName);
 
@@ -351,9 +347,11 @@ namespace STCAPI.Controllers.ExcelReader
             }
             catch (Exception ex)
             {
-                return BadRequest("Error");
-            }
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(ReadExcelData),
+                 nameof(UpdateSubsidry), ex.Message, ex.ToString());
 
+                return BadRequest("Something wents wrong, Please contact admin Team !");
+            }
         }
 
         /// <summary>
@@ -366,62 +364,86 @@ namespace STCAPI.Controllers.ExcelReader
         [Consumes("application/json")]
         public async Task<IActionResult> GetSubsidryAttachment(int invoiceId)
         {
-            var responseData = await _ISubsidryInvoiceAttachmentRepository.GetAllEntities(x => x.UploadInvoiceId == invoiceId);
-            var models = new List<SubsidryAttachmentDetailResponse>();
-
-            responseData.TEntities.ToList().ForEach(data =>
+            try
             {
-                models.Add(new SubsidryAttachmentDetailResponse()
+                var responseData = await _ISubsidryInvoiceAttachmentRepository.GetAllEntities(x => x.UploadInvoiceId == invoiceId);
+                var models = new List<SubsidryAttachmentDetailResponse>();
+
+                responseData.TEntities.ToList().ForEach(data =>
                 {
-                    Id = data.Id,
-                    InputAttachments = data.InputAttachmentDetails,
-                    TrialAttachments = data.TrialAttachmentDetails,
-                    OutputAttachments = data.OutPutAttachmentDetails,
-                    ReturnAttachments = data.ReturnAttachmentDetails,
+                    models.Add(new SubsidryAttachmentDetailResponse()
+                    {
+                        Id = data.Id,
+                        InputAttachments = data.InputAttachmentDetails,
+                        TrialAttachments = data.TrialAttachmentDetails,
+                        OutputAttachments = data.OutPutAttachmentDetails,
+                        ReturnAttachments = data.ReturnAttachmentDetails,
+                    });
                 });
-            });
-            return Ok(models);
+                return Ok(models);
+            }
+            catch (Exception ex)
+            {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(ReadExcelData),
+                     nameof(GetSubsidryAttachment), ex.Message, ex.ToString());
+                return BadRequest("Something wents wrong, Please contact admin Team !");
+            }
+
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         [Produces("application/json")]
         public async Task<IActionResult> UpdateAttachment([FromForm] UpdateAttachmentVm model)
         {
-            var inputAttachmentList = await new BlobHelper().UploadDocument(model.FileData, _IHostingEnviroment);
-            var responseData = await _ISubsidryInvoiceAttachmentRepository.GetAllEntities(x => x.Id == model.Id);
-            switch (model.Name)
+            try
             {
-                case "Input":
-                    responseData.TEntities.ToList().ForEach(data =>
-                    {
-                        data.InputAttachmentDetails = inputAttachmentList;
-                    });
-                    break;
-                case "Trial":
-                    responseData.TEntities.ToList().ForEach(data =>
-                    {
-                        data.TrialAttachmentDetails = inputAttachmentList;
-                    });
-                    break;
-                case "Output":
-                    responseData.TEntities.ToList().ForEach(data =>
-                    {
-                        data.OutPutAttachmentDetails = inputAttachmentList;
-                    });
-                    break;
-                case "Return":
-                    responseData.TEntities.ToList().ForEach(data =>
-                    {
-                        data.ReturnAttachmentDetails = inputAttachmentList;
-                    });
-                    break;
-                default:
-                    break;
+                var inputAttachmentList = await new BlobHelper().UploadDocument(model.FileData, _IHostingEnviroment);
+                var responseData = await _ISubsidryInvoiceAttachmentRepository.GetAllEntities(x => x.Id == model.Id);
+                switch (model.Name)
+                {
+                    case "Input":
+                        responseData.TEntities.ToList().ForEach(data =>
+                        {
+                            data.InputAttachmentDetails = inputAttachmentList;
+                        });
+                        break;
+                    case "Trial":
+                        responseData.TEntities.ToList().ForEach(data =>
+                        {
+                            data.TrialAttachmentDetails = inputAttachmentList;
+                        });
+                        break;
+                    case "Output":
+                        responseData.TEntities.ToList().ForEach(data =>
+                        {
+                            data.OutPutAttachmentDetails = inputAttachmentList;
+                        });
+                        break;
+                    case "Return":
+                        responseData.TEntities.ToList().ForEach(data =>
+                        {
+                            data.ReturnAttachmentDetails = inputAttachmentList;
+                        });
+                        break;
+                    default:
+                        break;
+                }
+
+                var updateResponse = await _ISubsidryInvoiceAttachmentRepository.UpdateEntity(responseData.TEntities.FirstOrDefault());
+                return Ok("Success");
+            }
+            catch (Exception ex)
+            {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(ReadExcelData),
+                        nameof(UpdateAttachment), ex.Message, ex.ToString());
+                return BadRequest("Something wents wrong, Please contact admin Team !");
             }
 
-            var updateResponse = await _ISubsidryInvoiceAttachmentRepository.UpdateEntity(responseData.TEntities.FirstOrDefault());
-            return Ok("Success");
         }
 
 
@@ -474,8 +496,7 @@ namespace STCAPI.Controllers.ExcelReader
             }
             catch (Exception ex)
             {
-                message = ex.Message;
-                return null;
+                throw new Exception(ex.Message, ex);
             }
             models.ForEach(data =>
             {
@@ -489,29 +510,38 @@ namespace STCAPI.Controllers.ExcelReader
 
         private async Task<int> CreateUploadInvocie(InvoiceDetail model, List<string> attchementList, string inputFilePath, string outPutFilePath, string returnFilePath, string trialBalancePath, string companyName)
         {
-            var invoiceModel = new UploadInvoiceDetail()
+            try
             {
-                StreamName = model.InvoiceName,
-                CreatedBy = model.UserName,
-                CreatedDate = DateTime.Now,
-                IsActive = true,
-                IsDeleted = false,
-                Period = model.Period,
-                InputVatFilePath = inputFilePath,
-                OutputVatFilePath = outPutFilePath,
-                TrialBalanceVatFilePath = trialBalancePath,
-                ReturnVatFilePath = returnFilePath,
-                CompanyName = companyName
-            };
+                var invoiceModel = new UploadInvoiceDetail()
+                {
+                    StreamName = model.InvoiceName,
+                    CreatedBy = model.UserName,
+                    CreatedDate = DateTime.Now,
+                    IsActive = true,
+                    IsDeleted = false,
+                    Period = model.Period,
+                    InputVatFilePath = inputFilePath,
+                    OutputVatFilePath = outPutFilePath,
+                    TrialBalanceVatFilePath = trialBalancePath,
+                    ReturnVatFilePath = returnFilePath,
+                    CompanyName = companyName
+                };
 
+                var response = await _IUploadInvoiceRepository.CreateEntity(new List<UploadInvoiceDetail>() { invoiceModel }.ToArray());
 
-            var response = await _IUploadInvoiceRepository.CreateEntity(new List<UploadInvoiceDetail>() { invoiceModel }.ToArray());
-            if (response.ResponseStatus != Core.Entities.Common.ResponseStatus.Error)
-            {
-                var uploadInvoices = await _IUploadInvoiceRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
-                return uploadInvoices.TEntities.Max(x => x.Id);
+                if (response.ResponseStatus != Core.Entities.Common.ResponseStatus.Error)
+                {
+                    var uploadInvoices = await _IUploadInvoiceRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+                    return uploadInvoices.TEntities.Max(x => x.Id);
+                }
+
+                return await Task.Run(() => 0);
             }
-            return await Task.Run(() => 0);
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
+
         }
 
         private List<InputVATFileVm> InputVATExcelData(IFormFile inputFile)
@@ -605,8 +635,7 @@ namespace STCAPI.Controllers.ExcelReader
             }
             catch (Exception ex)
             {
-                message = ex.Message;
-                return null;
+                throw new Exception(ex.Message, ex);
             }
 
             return models;
@@ -704,8 +733,7 @@ namespace STCAPI.Controllers.ExcelReader
             }
             catch (Exception ex)
             {
-                message = ex.Message;
-                return null;
+                throw new Exception(ex.Message, ex);
             }
 
             return models;
@@ -756,8 +784,7 @@ namespace STCAPI.Controllers.ExcelReader
             }
             catch (Exception ex)
             {
-                message = ex.Message;
-                return null;
+                throw new Exception(ex.Message, ex);
             }
 
             return models;
@@ -765,116 +792,143 @@ namespace STCAPI.Controllers.ExcelReader
 
         private async Task<List<InputVATDataFile>> ConvertInputModelToDBModel(List<InputVATFileVm> models)
         {
-            List<InputVATDataFile> dbModels = new List<InputVATDataFile>();
-            foreach (var item in models)
+            try
             {
+                List<InputVATDataFile> dbModels = new List<InputVATDataFile>();
+                foreach (var item in models)
+                {
 
-                var dbModel = new InputVATDataFile();
-                dbModel.InvoiceType = item.InvoiceType;
-                dbModel.InvoiceSource = item.InvoiceSource;
-                dbModel.InvoiceNumber = item.InvoiceNumber;
-                dbModel.InvoiceDocNumber = item.InvoiceDocNumber;
-                dbModel.InvoiceDate =IsValidDateTime(item.InvoiceDate)? item.InvoiceDate.GetDefaultIfStringNull<DateTime>(): null;
-                dbModel.GLDate =IsValidDateTime(item.GLDate)? item.GLDate.GetDefaultIfStringNull<DateTime>():null;
-                dbModel.TotalInvoiceAmount = item.TotalInvoiceAmount.GetDefaultIfStringNull<decimal>();
-                dbModel.InvoiceCurrency = item.InvoiceCurrency;
-                dbModel.CurrencyExchangeRate = item.CurrencyExchangeRate.GetDefaultIfStringNull<decimal>();
-                dbModel.SARInvoiceAmount = item.SARInvoiceAmount.GetDefaultIfStringNull<decimal>();
-                dbModel.SuppierNumber = item.SuppierNumber.GetDefaultIfStringNull<int>();
-                dbModel.SupplierName = item.SupplierName.GetDefaultIfStringNull<string>();
-                dbModel.SupplierSite = item.SupplierSite.GetDefaultIfStringNull<string>();
-                dbModel.SupplierAddress = item.SupplierAddress.GetDefaultIfStringNull<string>();
-                dbModel.SupplierCountry = item.SupplierCountry.GetDefaultIfStringNull<string>();
-                dbModel.SupplierBankAccount = item.SupplierBankAccount.GetDefaultIfStringNull<string>();
-                dbModel.SupplierVATRegistrationNumber = item.SupplierVATRegistrationNumber.GetDefaultIfStringNull<string>();
-                dbModel.SupplierVATGroupRegistrationNumber = item.SupplierVATGroupRegistrationNumber.GetDefaultIfStringNull<string>();
-                dbModel.InvoiceStatus = item.InvoiceStatus.GetDefaultIfStringNull<string>();
-                dbModel.PaymentStatus = item.PaymentStatus.GetDefaultIfStringNull<string>();
-                dbModel.PaymentAmount = item.PaymentAmount.GetDefaultIfStringNull<decimal>();
-                dbModel.PaymentMethod = item.PaymentMethod.GetDefaultIfStringNull<string>();
-                dbModel.PaymentTerm = item.PaymentTerm.GetDefaultIfStringNull<string>();
-                dbModel.InvoiceLineNumber = item.InvoiceLineNumber.GetDefaultIfStringNull<int>();
-                dbModel.InvoiceLineDescription = item.InvoiceLineDescription.GetDefaultIfStringNull<string>();
-                dbModel.PONumber = item.PONumber.GetDefaultIfStringNull<string>();
-                dbModel.PoDate =IsValidDateTime(item.PoDate)? item.PoDate.GetDefaultIfStringNull<DateTime>():null;
-                dbModel.ReleaseDate =IsValidDateTime(item.ReleaseDate)? item.ReleaseDate.GetDefaultIfStringNull<DateTime>(): null;
-                dbModel.ReceiptNumber = item.ReceiptNumber.GetDefaultIfStringNull<string>();
-                dbModel.ReceiptDate =IsValidDateTime(item.ReceiptDate)? item.ReceiptDate.GetDefaultIfStringNull<DateTime>(): null;
-                dbModel.PoItemNumber = item.PoItemNumber.GetDefaultIfStringNull<string>();
-                dbModel.PoItemDescription = item.PoItemDescription.GetDefaultIfStringNull<string>();
-                dbModel.Quantity = item.Quantity.GetDefaultIfStringNull<decimal>();
-                dbModel.UnitPrice = item.UnitPrice.GetDefaultIfStringNull<decimal>();
-                dbModel.DiscountAmount = item.DiscountAmount.GetDefaultIfStringNull<decimal>();
-                dbModel.DiscountPercentage = item.DiscountPercentage.GetDefaultIfStringNull<decimal>();
-                dbModel.ContractNumber = item.ContractNumber.GetDefaultIfStringNull<string>();
-                dbModel.ContractStartDate =IsValidDateTime(item.ContractStartDate)? item.ContractStartDate.GetDefaultIfStringNull<DateTime>(): null;
-                dbModel.ContractEndDate =IsValidDateTime(item.ContractEndDate)? item.ContractEndDate.GetDefaultIfStringNull<DateTime>(): null;
-                dbModel.OriginalInvoiceNumberForDebitCreditNote = item.OriginalInvoiceNumberForDebitCreditNote;
-                dbModel.TaxLineNumber = item.TaxLineNumber.GetDefaultIfStringNull<int>();
-                dbModel.ProductType = item.ProductType;
-                dbModel.TaxCode = item.TaxCode;
-                dbModel.TaxRateCode = item.TaxRateCode;
-                dbModel.TaxRate = item.TaxRate.GetDefaultIfStringNull<int>();
-                dbModel.TaxableAmount = item.TaxableAmount.GetDefaultIfStringNull<decimal>();
-                dbModel.SARTaxableAmount = item.SARTaxableAmount.GetDefaultIfStringNull<decimal>();
-                dbModel.RecoverableTaxableAmount = item.RecoverableTaxableAmount.GetDefaultIfStringNull<decimal>();
-                dbModel.SARRecoverableTaxableAmount = item.SARRecoverableTaxableAmount.GetDefaultIfStringNull<decimal>();
-                dbModel.NonRecoverableTaxAmount = item.NonRecoverableTaxAmount.GetDefaultIfStringNull<decimal>();
-                dbModel.SARNonRecoverableTaxAmount = item.SARNonRecoverableTaxAmount.GetDefaultIfStringNull<decimal>();
-                dbModel.RecoverableTaxGLAccountNumber = item.RecoverableTaxGLAccountNumber;
+                    var dbModel = new InputVATDataFile();
+                    dbModel.InvoiceType = item.InvoiceType;
+                    dbModel.InvoiceSource = item.InvoiceSource;
+                    dbModel.InvoiceNumber = item.InvoiceNumber;
+                    dbModel.InvoiceDocNumber = item.InvoiceDocNumber;
+                    dbModel.InvoiceDate = IsValidDateTime(item.InvoiceDate) ? item.InvoiceDate.GetDefaultIfStringNull<DateTime>() : null;
+                    dbModel.GLDate = IsValidDateTime(item.GLDate) ? item.GLDate.GetDefaultIfStringNull<DateTime>() : null;
+                    dbModel.TotalInvoiceAmount = item.TotalInvoiceAmount.GetDefaultIfStringNull<decimal>();
+                    dbModel.InvoiceCurrency = item.InvoiceCurrency;
+                    dbModel.CurrencyExchangeRate = item.CurrencyExchangeRate.GetDefaultIfStringNull<decimal>();
+                    dbModel.SARInvoiceAmount = item.SARInvoiceAmount.GetDefaultIfStringNull<decimal>();
+                    dbModel.SuppierNumber = item.SuppierNumber.GetDefaultIfStringNull<int>();
+                    dbModel.SupplierName = item.SupplierName.GetDefaultIfStringNull<string>();
+                    dbModel.SupplierSite = item.SupplierSite.GetDefaultIfStringNull<string>();
+                    dbModel.SupplierAddress = item.SupplierAddress.GetDefaultIfStringNull<string>();
+                    dbModel.SupplierCountry = item.SupplierCountry.GetDefaultIfStringNull<string>();
+                    dbModel.SupplierBankAccount = item.SupplierBankAccount.GetDefaultIfStringNull<string>();
+                    dbModel.SupplierVATRegistrationNumber = item.SupplierVATRegistrationNumber.GetDefaultIfStringNull<string>();
+                    dbModel.SupplierVATGroupRegistrationNumber = item.SupplierVATGroupRegistrationNumber.GetDefaultIfStringNull<string>();
+                    dbModel.InvoiceStatus = item.InvoiceStatus.GetDefaultIfStringNull<string>();
+                    dbModel.PaymentStatus = item.PaymentStatus.GetDefaultIfStringNull<string>();
+                    dbModel.PaymentAmount = item.PaymentAmount.GetDefaultIfStringNull<decimal>();
+                    dbModel.PaymentMethod = item.PaymentMethod.GetDefaultIfStringNull<string>();
+                    dbModel.PaymentTerm = item.PaymentTerm.GetDefaultIfStringNull<string>();
+                    dbModel.InvoiceLineNumber = item.InvoiceLineNumber.GetDefaultIfStringNull<int>();
+                    dbModel.InvoiceLineDescription = item.InvoiceLineDescription.GetDefaultIfStringNull<string>();
+                    dbModel.PONumber = item.PONumber.GetDefaultIfStringNull<string>();
+                    dbModel.PoDate = IsValidDateTime(item.PoDate) ? item.PoDate.GetDefaultIfStringNull<DateTime>() : null;
+                    dbModel.ReleaseDate = IsValidDateTime(item.ReleaseDate) ? item.ReleaseDate.GetDefaultIfStringNull<DateTime>() : null;
+                    dbModel.ReceiptNumber = item.ReceiptNumber.GetDefaultIfStringNull<string>();
+                    dbModel.ReceiptDate = IsValidDateTime(item.ReceiptDate) ? item.ReceiptDate.GetDefaultIfStringNull<DateTime>() : null;
+                    dbModel.PoItemNumber = item.PoItemNumber.GetDefaultIfStringNull<string>();
+                    dbModel.PoItemDescription = item.PoItemDescription.GetDefaultIfStringNull<string>();
+                    dbModel.Quantity = item.Quantity.GetDefaultIfStringNull<decimal>();
+                    dbModel.UnitPrice = item.UnitPrice.GetDefaultIfStringNull<decimal>();
+                    dbModel.DiscountAmount = item.DiscountAmount.GetDefaultIfStringNull<decimal>();
+                    dbModel.DiscountPercentage = item.DiscountPercentage.GetDefaultIfStringNull<decimal>();
+                    dbModel.ContractNumber = item.ContractNumber.GetDefaultIfStringNull<string>();
+                    dbModel.ContractStartDate = IsValidDateTime(item.ContractStartDate) ? item.ContractStartDate.GetDefaultIfStringNull<DateTime>() : null;
+                    dbModel.ContractEndDate = IsValidDateTime(item.ContractEndDate) ? item.ContractEndDate.GetDefaultIfStringNull<DateTime>() : null;
+                    dbModel.OriginalInvoiceNumberForDebitCreditNote = item.OriginalInvoiceNumberForDebitCreditNote;
+                    dbModel.TaxLineNumber = item.TaxLineNumber.GetDefaultIfStringNull<int>();
+                    dbModel.ProductType = item.ProductType;
+                    dbModel.TaxCode = item.TaxCode;
+                    dbModel.TaxRateCode = item.TaxRateCode;
+                    dbModel.TaxRate = item.TaxRate.GetDefaultIfStringNull<int>();
+                    dbModel.TaxableAmount = item.TaxableAmount.GetDefaultIfStringNull<decimal>();
+                    dbModel.SARTaxableAmount = item.SARTaxableAmount.GetDefaultIfStringNull<decimal>();
+                    dbModel.RecoverableTaxableAmount = item.RecoverableTaxableAmount.GetDefaultIfStringNull<decimal>();
+                    dbModel.SARRecoverableTaxableAmount = item.SARRecoverableTaxableAmount.GetDefaultIfStringNull<decimal>();
+                    dbModel.NonRecoverableTaxAmount = item.NonRecoverableTaxAmount.GetDefaultIfStringNull<decimal>();
+                    dbModel.SARNonRecoverableTaxAmount = item.SARNonRecoverableTaxAmount.GetDefaultIfStringNull<decimal>();
+                    dbModel.RecoverableTaxGLAccountNumber = item.RecoverableTaxGLAccountNumber;
 
-                dbModels.Add(dbModel);
-            };
+                    dbModels.Add(dbModel);
+                };
 
-            return await Task.Run(() => dbModels);
-
+                return await Task.Run(() => dbModels);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
-        private bool IsValidDateTime(string dateTime) 
+        private bool IsValidDateTime(string dateTime)
         {
             return DateTime.TryParse(dateTime, out DateTime ouDate);
         }
         private async Task<bool> CreateInputVATDetail(List<InputVATDataFile> models, string userName)
         {
-            models.ForEach(item =>
+            try
             {
-                item.CreatedBy = userName;
-            });
+                models.ForEach(item =>
+                {
+                    item.CreatedBy = userName;
+                });
 
-            var response = await _IInputVatDataFileRepository.CreateEntity(models.ToArray());
-            return response.ResponseStatus != Core.Entities.Common.ResponseStatus.Error;
+                var response = await _IInputVatDataFileRepository.CreateEntity(models.ToArray());
+                return response.ResponseStatus != Core.Entities.Common.ResponseStatus.Error;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
 
         private async Task<List<VATTrailBalanceModel>> ConvertVATTrialBalanceModelToDBModel(List<VATTrialBalanceModel> models)
         {
-            var dbModels = new List<VATTrailBalanceModel>();
-            foreach (var data in models)
+            try
             {
-                var dbModel = new VATTrailBalanceModel();
-                dbModel.Account = data.Account.GetDefaultIfStringNull<string>();
-                dbModel.Description = data.Description.GetDefaultIfStringNull<string>();
-                dbModel.BeginingBalance = data.BeginingBalance.GetDefaultIfStringNull<decimal>();
-                dbModel.Debit = data.Debit.GetDefaultIfStringNull<decimal>();
-                dbModel.Credit = data.Credit.GetDefaultIfStringNull<decimal>();
-                dbModel.Activity = data.Activity.GetDefaultIfStringNull<decimal>();
-                dbModel.EndingBalance = data.EndingBalance.GetDefaultIfStringNull<decimal>();
+                var dbModels = new List<VATTrailBalanceModel>();
 
-                dbModels.Add(dbModel);
+                foreach (var data in models)
+                {
+                    var dbModel = new VATTrailBalanceModel();
+                    dbModel.Account = data.Account.GetDefaultIfStringNull<string>();
+                    dbModel.Description = data.Description.GetDefaultIfStringNull<string>();
+                    dbModel.BeginingBalance = data.BeginingBalance.GetDefaultIfStringNull<decimal>();
+                    dbModel.Debit = data.Debit.GetDefaultIfStringNull<decimal>();
+                    dbModel.Credit = data.Credit.GetDefaultIfStringNull<decimal>();
+                    dbModel.Activity = data.Activity.GetDefaultIfStringNull<decimal>();
+                    dbModel.EndingBalance = data.EndingBalance.GetDefaultIfStringNull<decimal>();
 
+                    dbModels.Add(dbModel);
+
+                }
+
+                return await Task.Run(() => dbModels);
             }
-
-            return await Task.Run(() => dbModels);
-
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
 
         private async Task<bool> CreateTrialBalance(List<VATTrailBalanceModel> models, string userName)
         {
-            models.ForEach(item =>
+            try
             {
-                item.CreatedBy = userName;
-            });
+                models.ForEach(item =>
+                {
+                    item.CreatedBy = userName;
+                });
 
-            var response = await _IVatTrialBalanceModelRepository.CreateEntity(models.ToArray());
-            return response.ResponseStatus != Core.Entities.Common.ResponseStatus.Error;
+                var response = await _IVatTrialBalanceModelRepository.CreateEntity(models.ToArray());
+                return response.ResponseStatus != Core.Entities.Common.ResponseStatus.Error;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
 
         private async Task<List<STCVATOutputModel>> DTOOutModelToOutputDataModel(List<OutPutVATModel> models)
@@ -891,8 +945,8 @@ namespace STCAPI.Controllers.ExcelReader
                     dtoModel.InvoiceDocSequence = item.InvoiceDocSequence.GetDefaultIfStringNull<string>();
                     dtoModel.InvoiceSource = item.InvoiceSource.GetDefaultIfStringNull<string>();
                     dtoModel.InvoiceType = item.InvoiceType.GetDefaultIfStringNull<string>();
-                    dtoModel.InvoiceDate =IsValidDateTime(item.InvoiceDate)? item.InvoiceDate.GetDefaultIfStringNull<DateTime>(): null;
-                    dtoModel.GLDate =IsValidDateTime(item.GLDate)? item.GLDate.GetDefaultIfStringNull<DateTime>(): null;
+                    dtoModel.InvoiceDate = IsValidDateTime(item.InvoiceDate) ? item.InvoiceDate.GetDefaultIfStringNull<DateTime>() : null;
+                    dtoModel.GLDate = IsValidDateTime(item.GLDate) ? item.GLDate.GetDefaultIfStringNull<DateTime>() : null;
                     dtoModel.InvoiceAmount = item.InvoiceAmount.GetDefaultIfStringNull<decimal>();
                     dtoModel.InvoiceCurrency = item.InvoiceCurrency.GetDefaultIfStringNull<string>();
                     dtoModel.CurrencyExchangeRate = item.CurrencyExchangeRate.GetDefaultIfStringNull<decimal>();
@@ -937,8 +991,8 @@ namespace STCAPI.Controllers.ExcelReader
                     dtoModel.ContractNumber = item.ContractNumber.GetDefaultIfStringNull<string>();
                     dtoModel.ContractDescription = item.ContractDescription.GetDefaultIfStringNull<string>();
 
-                    dtoModel.ContractStartDate =IsValidDateTime(item.ContractStartDate)? item.ContractStartDate.GetDefaultIfStringNull<DateTime>(): null;
-                    dtoModel.ContractEndDate = IsValidDateTime( item.ContractEndDate)?item.ContractEndDate.GetDefaultIfStringNull<DateTime>() :null;
+                    dtoModel.ContractStartDate = IsValidDateTime(item.ContractStartDate) ? item.ContractStartDate.GetDefaultIfStringNull<DateTime>() : null;
+                    dtoModel.ContractEndDate = IsValidDateTime(item.ContractEndDate) ? item.ContractEndDate.GetDefaultIfStringNull<DateTime>() : null;
                     dtoModel.OriginalInvoice = item.OriginalInvoice.GetDefaultIfStringNull<string>();
                     dtoModel.PoNumber = item.PONumber.GetDefaultIfStringNull<string>();
                     dtoModel.UniversalUniqueInvoiceIndentifier = item.UniversalUniqueInvoiceIdentifier.GetDefaultIfStringNull<string>();
@@ -954,23 +1008,31 @@ namespace STCAPI.Controllers.ExcelReader
             }
             catch (Exception ex)
             {
-                return await Task.Run(() => dtoModels);
+                throw new Exception(ex.Message, ex);
             }
-            //return await Task.Run(() => dtoModels);
         }
 
         private async Task<bool> CreateSTCOutputModel(List<STCVATOutputModel> models, string userName)
         {
-            models.ForEach(data =>
+            try
             {
-                data.CreatedBy = userName;
-                data.CreatedDate = DateTime.Now;
+                models.ForEach(data =>
+                {
+                    data.CreatedBy = userName;
+                    data.CreatedDate = DateTime.Now;
 
-            });
-            var response = await _ISTCVATOutputModelRepository.CreateEntity(models.ToArray());
-            return response.ResponseStatus != Core.Entities.Common.ResponseStatus.Error;
+                });
+                var response = await _ISTCVATOutputModelRepository.CreateEntity(models.ToArray());
+                return response.ResponseStatus != Core.Entities.Common.ResponseStatus.Error;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
+
         }
 
+        #region ObsoleteMethod
         private async Task<List<VATRetunDetailModel>> GetVATReturnDetail(IFormFile fileData)
         {
 
@@ -1060,19 +1122,59 @@ namespace STCAPI.Controllers.ExcelReader
             return await Task.Run(() => ("", dbModels));
         }
 
+        #endregion
+
         private async Task<bool> CreateVATReturnData(List<VATReturnModel> models, string userName)
         {
-            models.ForEach(data =>
+            try
             {
-                data.CreatedBy = userName;
-            });
+                models.ForEach(data =>
+                {
+                    data.CreatedBy = userName;
+                });
 
-            models.RemoveAll(data => string.IsNullOrEmpty(data.VATTypeName));
+                models.RemoveAll(data => string.IsNullOrEmpty(data.VATTypeName));
 
-            var response = await _IVATReturnModelRepository.CreateEntity(models.ToArray());
-            return response.ResponseStatus != Core.Entities.Common.ResponseStatus.Error;
+                var response = await _IVATReturnModelRepository.CreateEntity(models.ToArray());
+                return response.ResponseStatus != Core.Entities.Common.ResponseStatus.Error;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
 
+
+        private async Task UploadSubsidryAttachment(InvoiceDetail model, List<string> inputAttachmentList, List<string> outPutAttachmentList, List<string> returnAttachmentList, List<string> trialAttachmentList, int uploadInvoiceId)
+        {
+            try
+            {
+                var counts = new List<int>() { inputAttachmentList.Count(), outPutAttachmentList.Count(), returnAttachmentList.Count(), trialAttachmentList.Count() };
+                int maxCount = counts.Max();
+                var models = new List<SubsidryInvoiceAttachment>();
+
+                for (int i = 0; i < maxCount; i++)
+                {
+                    var subsidryModel = new SubsidryInvoiceAttachment()
+                    {
+                        UploadInvoiceId = uploadInvoiceId,
+                        InputAttachmentDetails = inputAttachmentList.ElementAtOrDefault(i) ?? string.Empty,
+                        OutPutAttachmentDetails = outPutAttachmentList.ElementAtOrDefault(i) ?? string.Empty,
+                        TrialAttachmentDetails = trialAttachmentList.ElementAtOrDefault(i) ?? string.Empty,
+                        ReturnAttachmentDetails = returnAttachmentList.ElementAtOrDefault(i) ?? string.Empty,
+                        CreatedBy = model.UserName
+                    };
+
+                    models.Add(subsidryModel);
+                }
+
+                var uploadAttachmentResponse = await _ISubsidryInvoiceAttachmentRepository.CreateEntity(models.ToArray());
+            }
+            catch (Exception ex) {
+                throw new Exception(ex.Message, ex);
+            }
+
+        }
         #endregion
     }
 }

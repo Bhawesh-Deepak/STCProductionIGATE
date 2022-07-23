@@ -14,11 +14,19 @@ using System.Threading.Tasks;
 
 namespace STCAPI.Controllers.IGATE
 {
+    /// <summary>
+    /// I GATE Api's for Authentication and request Processing 
+    /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class IGATEApiController : ControllerBase
     {
         private readonly IGenericRepository<VATRequestUpdate, int> _IVATRequestUpdateRepo;
+
+        /// <summary>
+        /// Inject required service to controller contructor
+        /// </summary>
+        /// <param name="vatRequestUpdateRepo"></param>
         public IGATEApiController(IGenericRepository<VATRequestUpdate, int> vatRequestUpdateRepo)
         {
             _IVATRequestUpdateRepo = vatRequestUpdateRepo;

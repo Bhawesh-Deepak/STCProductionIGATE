@@ -14,6 +14,7 @@ using STCAPI.Core.Entities.ReportCreteria;
 using STCAPI.Core.Entities.MenuSubMenu;
 using STCAPI.Core.Entities.SqlQueryValidation;
 using STCAPI.Core.Entities.IGATE;
+using STCAPI.Core.Entities.Logger;
 
 namespace STCAPI.Core.Entities.Context
 {
@@ -75,5 +76,6 @@ namespace STCAPI.Core.Entities.Context
         public virtual DbSet<MenuSubMenuAccessModel> MenuSubMenuAccessModels{ get; set; }
         public virtual DbSet<SqlQueryValidationModel> SqlQueryValidations { get; set; }
         public virtual DbSet<VATRequestUpdate> VATRequestUpdates { get; set; }
+        public virtual DbSet<ErrorLogModel> ErrorLogModels { get; set; }
     }
 }

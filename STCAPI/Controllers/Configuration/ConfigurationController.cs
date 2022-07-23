@@ -2,7 +2,9 @@
 using STAAPI.Infrastructure.Repository.GenericRepository;
 using STCAPI.Core.Entities.Configuration;
 using STCAPI.Core.Entities.LogDetail;
+using STCAPI.Core.Entities.Logger;
 using STCAPI.DataLayer.AdminPortal;
+using STCAPI.ErrorLogService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +23,7 @@ namespace STCAPI.Controllers.Configuration
         private readonly IGenericRepository<StreamMaster, int> _IStreamMasterRepository;
         private readonly IGenericRepository<MainStreamMaster, int> _IMainStreamRepository;
         private readonly IGenericRepository<LogDetail, int> _ILogeDetailRepository;
-
+        private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
         private readonly IGenericRepository<ConfigurationMaster, int> _IConfigurationMaster;
 
         /// <summary>
@@ -36,13 +38,15 @@ namespace STCAPI.Controllers.Configuration
             IGenericRepository<StreamMaster, int> iStreamMasterRepository,
             IGenericRepository<MainStreamMaster, int> iMainStreamRepository,
             IGenericRepository<LogDetail, int> logDetailRepository,
-            IGenericRepository<ConfigurationMaster, int> iConfigurationMaster)
+            IGenericRepository<ConfigurationMaster, int> iConfigurationMaster,
+            IGenericRepository<ErrorLogModel, int> errorLogRepository)
         {
             _IStageMasterRepository = iStageMasterRepository;
             _IStreamMasterRepository = iStreamMasterRepository;
             _IMainStreamRepository = iMainStreamRepository;
             _IConfigurationMaster = iConfigurationMaster;
             _ILogeDetailRepository = logDetailRepository;
+            _IErrorLogRepository = errorLogRepository;
         }
 
         /// <summary>
@@ -70,6 +74,8 @@ namespace STCAPI.Controllers.Configuration
             catch (Exception ex)
             {
                 string exceptionMessage = ex.Message;
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(ConfigurationController),
+                    nameof(GetStageDetail), exceptionMessage, ex.ToString());
                 return BadRequest("Issue Occured, Please contact admin Team !");
             }
         }
@@ -91,6 +97,8 @@ namespace STCAPI.Controllers.Configuration
             catch (Exception ex)
             {
                 string exceptionMessage = ex.Message;
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(ConfigurationController),
+                nameof(GetMainStreamDetail), exceptionMessage, ex.ToString());
                 return BadRequest("Issue Occured, Please contact admin Team !");
             }
 
@@ -113,6 +121,8 @@ namespace STCAPI.Controllers.Configuration
             catch (Exception ex)
             {
                 string exceptionMessage = ex.Message;
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(ConfigurationController),
+                nameof(GetStreamDetail), exceptionMessage, ex.ToString());
                 return BadRequest("Issue Occured, Please contact admin Team !");
             }
 
@@ -136,6 +146,8 @@ namespace STCAPI.Controllers.Configuration
             catch (Exception ex)
             {
                 string exceptionMessage = ex.Message;
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(ConfigurationController),
+                nameof(CreateConfiguration), exceptionMessage, ex.ToString());
                 return BadRequest("Issue Occured, Please contact admin Team !");
             }
 
@@ -159,6 +171,8 @@ namespace STCAPI.Controllers.Configuration
             catch (Exception ex)
             {
                 string exceptionMessage = ex.Message;
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(ConfigurationController),
+                nameof(GetConfigurationDetails), exceptionMessage, ex.ToString());
                 return BadRequest("Issue Occured, Please contact admin Team !");
             }
 
@@ -190,6 +204,8 @@ namespace STCAPI.Controllers.Configuration
             catch (Exception ex)
             {
                 string exceptionMessage = ex.Message;
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(ConfigurationController),
+                nameof(UpdateConfiguration), exceptionMessage, ex.ToString());
                 return BadRequest("Issue Occured, Please contact admin Team !");
             }
 
@@ -219,6 +235,8 @@ namespace STCAPI.Controllers.Configuration
             catch (Exception ex)
             {
                 string exceptionMessage = ex.Message;
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(ConfigurationController),
+                nameof(DeleteConfiguration), exceptionMessage, ex.ToString());
                 return BadRequest("Issue Occured, Please contact admin Team !");
             }
         }
