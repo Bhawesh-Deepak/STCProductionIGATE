@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using STAAPI.Infrastructure.Repository.GenericRepository;
+using STCAPI.Controllers.AdminPortal;
+using STCAPI.Core.Entities.Logger;
 using STCAPI.Core.Entities.Subsidry;
+using STCAPI.ErrorLogService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,137 +12,263 @@ using System.Threading.Tasks;
 
 namespace STCAPI.Controllers.UserManagement
 {
+    /// <summary>
+    /// SubsidryApi 
+    /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class SubsidryController : ControllerBase
     {
         private readonly IGenericRepository<SubsidryModel, int> _ISubsidryModelRepository;
         private readonly IGenericRepository<SubsidryUserMapping, int> _ISubsidryUserMapping;
-
+        private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
         public SubsidryController(IGenericRepository<SubsidryModel, int> subsidryModelRepository,
-            IGenericRepository<SubsidryUserMapping, int> subsidryUserMappingRepository)
+            IGenericRepository<SubsidryUserMapping, int> subsidryUserMappingRepository, IGenericRepository<ErrorLogModel, int> errorLogRepository)
         {
             _ISubsidryModelRepository = subsidryModelRepository;
             _ISubsidryUserMapping = subsidryUserMappingRepository;
+            _IErrorLogRepository = errorLogRepository;
         }
 
+        /// <summary>
+        /// Create Subsusidry
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         [Produces("application/json")]
         [Consumes("application/json")]
         public async Task<IActionResult> CreateSubsidry(SubsidryModel model)
         {
-            var response = await _ISubsidryModelRepository.CreateEntity(new List<SubsidryModel>() { model }.ToArray());
-            return Ok(response);
+            try
+            {
+                var response = await _ISubsidryModelRepository.CreateEntity(new List<SubsidryModel>() { model }.ToArray());
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(SubsidryController),
+                     nameof(CreateSubsidry), ex.Message, ex.ToString());
+                return BadRequest("Something wents wrong, Please contact admin Team !");
+            }
+
         }
 
+        /// <summary>
+        /// Update SubsidryMapping
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         [Produces("application/json")]
         [Consumes("application/json")]
         public async Task<IActionResult> UpdateSubsidry(SubsidryModel model)
         {
-            var deleteModel = await _ISubsidryModelRepository.GetAllEntities(x => x.Id == model.Id);
-
-            deleteModel.TEntities.ToList().ForEach(data =>
+            try
             {
-                data.IsActive = false;
-                data.IsDeleted = true;
-            });
+                var deleteModel = await _ISubsidryModelRepository.GetAllEntities(x => x.Id == model.Id);
 
-            var deleteResponse = await _ISubsidryModelRepository.DeleteEntity(deleteModel.TEntities.ToArray());
-            model.Id = 0;
-            var response = await _ISubsidryModelRepository.CreateEntity(new List<SubsidryModel>() { model }.ToArray());
-            return Ok(response);
+                deleteModel.TEntities.ToList().ForEach(data =>
+                {
+                    data.IsActive = false;
+                    data.IsDeleted = true;
+                });
+
+                var deleteResponse = await _ISubsidryModelRepository.DeleteEntity(deleteModel.TEntities.ToArray());
+                model.Id = 0;
+                var response = await _ISubsidryModelRepository.CreateEntity(new List<SubsidryModel>() { model }.ToArray());
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(SubsidryController),
+                     nameof(UpdateSubsidry), ex.Message, ex.ToString());
+                return BadRequest("Something wents wrong, Please contact admin Team !");
+            }
+
         }
 
+
+        /// <summary>
+        /// Get Subsidry Mapping
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
         [Consumes("application/json")]
         public async Task<IActionResult> GetSubsidry()
         {
-            var response = await _ISubsidryModelRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
-            return Ok(response);
-        }
+            try
+            {
+                var response = await _ISubsidryModelRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(SubsidryController),
+                 nameof(GetSubsidry), ex.Message, ex.ToString());
+                return BadRequest("Something wents wrong, Please contact admin Team !");
+            }
 
+        }
+        /// <summary>
+        /// Delete subsidry mapping
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
         [Consumes("application/json")]
         public async Task<IActionResult> DeleteSubsidry(int id)
         {
-            var deleteModel = await _ISubsidryModelRepository.GetAllEntities(x => x.Id == id);
-            deleteModel.TEntities.ToList().ForEach(data =>
+            try
             {
-                data.IsActive = false;
-                data.IsDeleted = true;
-            });
+                var deleteModel = await _ISubsidryModelRepository.GetAllEntities(x => x.Id == id);
+                deleteModel.TEntities.ToList().ForEach(data =>
+                {
+                    data.IsActive = false;
+                    data.IsDeleted = true;
+                });
 
-            var deleteResponse = await _ISubsidryModelRepository.DeleteEntity(deleteModel.TEntities.ToArray());
-            return Ok(deleteResponse);
+                var deleteResponse = await _ISubsidryModelRepository.DeleteEntity(deleteModel.TEntities.ToArray());
+                return Ok(deleteResponse);
+            }
+            catch (Exception ex)
+            {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(SubsidryController),
+                    nameof(DeleteSubsidry), ex.Message, ex.ToString());
+                return BadRequest("Something wents wrong, Please contact admin Team !");
+            }
+
         }
 
+        /// <summary>
+        /// Create subsidry user Mapping
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         [Produces("application/json")]
         [Consumes("application/json")]
         public async Task<IActionResult> CreateSubsidryUserMapping(SubsidryUserMapping model)
         {
-            var deleteModel = await _ISubsidryUserMapping.GetAllEntities(x => x.UserName == model.UserName);
-
-            deleteModel.TEntities.ToList().ForEach(data =>
+            try
             {
-                data.IsActive = false;
-                data.IsDeleted = true;
-            });
+                var deleteModel = await _ISubsidryUserMapping.GetAllEntities(x => x.UserName == model.UserName);
 
-            var deleteReponse = await _ISubsidryUserMapping.DeleteEntity(deleteModel.TEntities.ToArray());
+                deleteModel.TEntities.ToList().ForEach(data =>
+                {
+                    data.IsActive = false;
+                    data.IsDeleted = true;
+                });
 
-            model.Id = 0;
+                var deleteReponse = await _ISubsidryUserMapping.DeleteEntity(deleteModel.TEntities.ToArray());
 
-            var createRepsonse = await _ISubsidryUserMapping.CreateEntity(new List<SubsidryUserMapping>() { model }.ToArray());
+                model.Id = 0;
 
-            return Ok(createRepsonse);
+                var createRepsonse = await _ISubsidryUserMapping.CreateEntity(new List<SubsidryUserMapping>() { model }.ToArray());
+
+                return Ok(createRepsonse);
+            }
+            catch (Exception ex)
+            {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(SubsidryController),
+                    nameof(CreateSubsidryUserMapping), ex.Message, ex.ToString());
+                return BadRequest("Something wents wrong, Please contact admin Team !");
+            }
+
         }
 
+        /// <summary>
+        /// Delete Subsidry Mapping
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
         [Consumes("application/json")]
         public async Task<IActionResult> DeleteSubsidryMapping(int id)
         {
-            var deleteModel = await _ISubsidryUserMapping.GetAllEntities(x => x.Id == id);
-
-            deleteModel.TEntities.ToList().ForEach(data =>
+            try
             {
-                data.IsActive = false;
-                data.IsDeleted = true;
-            });
+                var deleteModel = await _ISubsidryUserMapping.GetAllEntities(x => x.Id == id);
 
-            var deleteResponse = await _ISubsidryUserMapping.DeleteEntity(deleteModel.TEntities.ToArray());
-            return Ok(deleteResponse);
+                deleteModel.TEntities.ToList().ForEach(data =>
+                {
+                    data.IsActive = false;
+                    data.IsDeleted = true;
+                });
+
+                var deleteResponse = await _ISubsidryUserMapping.DeleteEntity(deleteModel.TEntities.ToArray());
+                return Ok(deleteResponse);
+            }
+            catch (Exception ex)
+            {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(SubsidryController),
+                    nameof(DeleteSubsidryMapping), ex.Message, ex.ToString());
+
+                return BadRequest("Something wents wrong, Please contact admin Team !");
+            }
+
         }
 
+        /// <summary>
+        /// Get SubsidryMapping Details
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
         [Consumes("application/json")]
         public async Task<IActionResult> GetSubsidryMappingDetails()
         {
-            var response = await _ISubsidryUserMapping.GetAllEntities(x => x.IsActive && !x.IsDeleted);
-            return Ok(response);
+            try
+            {
+                var response = await _ISubsidryUserMapping.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(SubsidryController),
+                        nameof(GetSubsidryMappingDetails), ex.Message, ex.ToString());
+
+                return BadRequest("Something wents wrong, Please contact admin Team !");
+            }
+
         }
+
+        /// <summary>
+        /// Update SubsidryMapping Details
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         [Produces("application/json")]
         [Consumes("application/json")]
         public async Task<IActionResult> UpdateSubsidryMapping(SubsidryUserMapping model)
         {
-            var deleteModel = await _ISubsidryUserMapping.GetAllEntities(x => x.Id == model.Id);
-
-            deleteModel.TEntities.ToList().ForEach(data =>
+            try
             {
-                data.IsActive = false;
-                data.IsDeleted = true;
-            });
+                var deleteModel = await _ISubsidryUserMapping.GetAllEntities(x => x.Id == model.Id);
 
-            var deleteResponse = await _ISubsidryUserMapping.DeleteEntity(deleteModel.TEntities.ToArray());
-            model.Id = 0;
-            var response = await _ISubsidryUserMapping.CreateEntity(new List<SubsidryUserMapping>() { model }.ToArray());
-            return Ok(response);
+                deleteModel.TEntities.ToList().ForEach(data =>
+                {
+                    data.IsActive = false;
+                    data.IsDeleted = true;
+                });
+
+                var deleteResponse = await _ISubsidryUserMapping.DeleteEntity(deleteModel.TEntities.ToArray());
+                model.Id = 0;
+                var response = await _ISubsidryUserMapping.CreateEntity(new List<SubsidryUserMapping>() { model }.ToArray());
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(SubsidryController),
+                        nameof(UpdateSubsidryMapping), ex.Message, ex.ToString());
+
+                return BadRequest("Something wents wrong, Please contact admin Team !");
+            }
+
         }
     }
 }

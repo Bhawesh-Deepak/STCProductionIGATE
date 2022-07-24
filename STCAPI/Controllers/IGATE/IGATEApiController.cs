@@ -111,9 +111,17 @@ namespace STCAPI.Controllers.IGATE
 
 
         /// <summary>
+        /// Update the VAT Request and initiate the Approval Cycle.
+        /// Every Time you call the Api with Form ID and approval detail to update the Approval request.
         /// 
         /// </summary>
-        /// <param name="model"></param>
+        /// <remarks> Using API to get the complete Complete Main Stream Details
+        /// 
+        /// AllowAnnonymous -> Authentication and Authorization not required.
+        /// 
+        /// 200: on success exceution for API EndPoint will get the data with 200 status code
+        /// 
+        /// </remarks>
         /// <returns></returns>
         [HttpPost]
         [Produces("application/json")]
@@ -150,8 +158,16 @@ namespace STCAPI.Controllers.IGATE
         }
 
         /// <summary>
+        ///  Get VAT Request Details to Display the Dashboard.
         /// 
         /// </summary>
+        /// <remarks> Using API to get the complete Complete Main Stream Details
+        /// 
+        /// AllowAnnonymous -> Authentication and Authorization not required.
+        /// 
+        /// 200: on success exceution for API EndPoint will get the data with 200 status code
+        /// 
+        /// </remarks>
         /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]

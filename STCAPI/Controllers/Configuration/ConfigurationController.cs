@@ -81,9 +81,16 @@ namespace STCAPI.Controllers.Configuration
         }
 
         /// <summary>
-        /// Api to get the main stream detail data
+        /// Get Main Stream Details
+        /// 
         /// </summary>
-        /// <param name="stageId"></param>
+        /// <remarks> Using API to get the complete Complete Main Stream Details
+        /// 
+        /// AllowAnnonymous -> Authentication and Authorization not required.
+        /// 
+        /// 200: on success exceution for API EndPoint will get the data with 200 status code
+        /// 
+        /// </remarks>
         /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]

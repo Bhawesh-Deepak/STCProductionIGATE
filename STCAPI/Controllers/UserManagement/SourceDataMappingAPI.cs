@@ -28,6 +28,16 @@ namespace STCAPI.Controllers.UserManagement
         private readonly IGenericRepository<RawDataStream, int> _IRawDataStreamRepository;
         private readonly IGenericRepository<SubsidryModel, int> _ISubsidryFormRepository;
         private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
+        /// <summary>
+        /// Inject requierd service to constructor of the controller
+        /// </summary>
+        /// <param name="SourceDataMappingRepo"></param>
+        /// <param name="MainStreamMasterRepo"></param>
+        /// <param name="StreamMasterRepo"></param>
+        /// <param name="sourceMasterRepo"></param>
+        /// <param name="RawDataStreamRepo"></param>
+        /// <param name="SubsidryFormRepo"></param>
+        /// <param name="errorLogRepository"></param>
         public SourceDataMappingAPI(IGenericRepository<SourceDataMapping, int> SourceDataMappingRepo,
             IGenericRepository<MainStreamMaster, int> MainStreamMasterRepo,
              IGenericRepository<StreamMaster, int> StreamMasterRepo,
