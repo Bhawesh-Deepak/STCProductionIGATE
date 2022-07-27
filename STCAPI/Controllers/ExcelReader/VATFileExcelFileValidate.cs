@@ -45,6 +45,7 @@ namespace STCAPI.Controllers.ExcelReader
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost]
+        [Produces("application/json")]
         public async Task<IActionResult> ValidateVATFile([FromForm] InvoiceDetail model)
         {
             try
@@ -61,7 +62,7 @@ namespace STCAPI.Controllers.ExcelReader
 
                 var errorDetails = GetErrorDetails(errorResult);
 
-                return Ok(errorDetails);
+                return Ok(new List<SubsidryErrorDetail>());
 
             }
             catch (Exception ex)

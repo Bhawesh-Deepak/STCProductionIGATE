@@ -204,6 +204,7 @@ namespace STCAPI.Controllers.ExcelReader
         /// </summary>
         /// <returns></returns>
         [HttpGet]
+        [Produces("application/json")]
         public async Task<IActionResult> GetExcelArchiveDetails()
         {
             try

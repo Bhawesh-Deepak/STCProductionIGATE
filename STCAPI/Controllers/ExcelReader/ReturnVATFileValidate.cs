@@ -43,6 +43,7 @@ namespace STCAPI.Controllers.ExcelReader
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost]
+        [Produces("application/json")]
         public async Task<IActionResult> ValidateReturnFile([FromForm] InvoiceDetail model)
         {
             try

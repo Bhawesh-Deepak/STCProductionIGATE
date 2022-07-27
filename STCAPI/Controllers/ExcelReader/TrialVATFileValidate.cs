@@ -46,6 +46,7 @@ namespace STCAPI.Controllers.ExcelReader
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost]
+        [Produces("application/json")]
         public async Task<IActionResult> TrialVATValidate([FromForm] InvoiceDetail model)
         {
             try
