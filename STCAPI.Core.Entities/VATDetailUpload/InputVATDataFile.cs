@@ -64,5 +64,6 @@ namespace STCAPI.Core.Entities.VATDetailUpload
         public decimal? SARNonRecoverableTaxAmount { get; set; }
         public string RecoverableTaxGLAccountNumber { get; set; }
         public int UploadInvoiceDetailId { get; set; }
+        public string CompanyName { get; set; }
     }
 }

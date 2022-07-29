@@ -19,5 +19,6 @@ namespace STCAPI.Core.Entities.VATDetailUpload
         public decimal? SARVATAmount { get; set; }
         public string VATReturnDetail { get; set; }
         public int UploadInvoiceDetailId { get; set; }
+        public string CompanyName { get; set; }
     }
 }

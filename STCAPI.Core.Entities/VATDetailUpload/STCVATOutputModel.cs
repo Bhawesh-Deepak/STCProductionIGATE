@@ -61,5 +61,6 @@ namespace STCAPI.Core.Entities.VATDetailUpload
         public string PreviousInvoiceNoteHash { get; set; }
         public string InvoiceTamperResistantCounterValue { get; set; }
         public int UploadInvoiceDetailId { get; set; }
+        public string CompanyName { get; set; }
     }
 }

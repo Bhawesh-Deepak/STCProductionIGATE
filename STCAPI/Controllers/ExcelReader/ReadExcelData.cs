@@ -118,6 +118,9 @@ namespace STCAPI.Controllers.ExcelReader
                 dbModels.ForEach(data =>
                 {
                     data.UploadInvoiceDetailId = uploadInvoiceId;
+                    data.CompanyName = company?.CompanyName ?? String.Empty;
+                    data.CreatedDate = DateTime.Now;
+                    data.UpdatedDate = DateTime.Now;
                 });
                 var inputDataFileResponse = await CreateInputVATDetail(dbModels, model.UserName);
 
@@ -130,6 +133,9 @@ namespace STCAPI.Controllers.ExcelReader
                 dtoModel.ForEach(data =>
                 {
                     data.UploadInvoiceDetailId = uploadInvoiceId;
+                    data.CompanyName = company?.CompanyName ?? String.Empty;
+                    data.CreatedDate = DateTime.Now;
+                    data.UpdatedDate = DateTime.Now;
                 });
                 var dbResponse = await CreateSTCOutputModel(dtoModel, model.UserName);
                 #endregion
@@ -155,7 +161,9 @@ namespace STCAPI.Controllers.ExcelReader
                             VATType = data.VATType ?? String.Empty,
                             VATTypeId = Convert.ToDecimal(data.VATTypeId ?? "0"),
                             VATTypeName = data.VATTypeName ?? String.Empty,
-                            CreatedDate = DateTime.Now
+                            CreatedDate = DateTime.Now,
+                            CompanyName = company?.CompanyName ?? String.Empty,
+                            UpdatedDate=DateTime.Now
                         });
                 });
 
@@ -170,6 +178,10 @@ namespace STCAPI.Controllers.ExcelReader
                 trialDBModels.ForEach(data =>
                 {
                     data.UploadInvoiceDetailId = uploadInvoiceId;
+                    data.CompanyName= company?.CompanyName ?? String.Empty;
+                    data.CreatedDate = DateTime.Now;
+                    data.UpdatedDate = DateTime.Now;
+
                 });
                 var trialDataResponse = await CreateTrialBalance(trialDBModels, model.UserName);
 
@@ -874,6 +886,7 @@ namespace STCAPI.Controllers.ExcelReader
                 models.ForEach(item =>
                 {
                     item.CreatedBy = userName;
+                    item.CreatedDate = DateTime.Now;
                 });
 
                 var response = await _IInputVatDataFileRepository.CreateEntity(models.ToArray());
@@ -1171,7 +1184,8 @@ namespace STCAPI.Controllers.ExcelReader
 
                 var uploadAttachmentResponse = await _ISubsidryInvoiceAttachmentRepository.CreateEntity(models.ToArray());
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 throw new Exception(ex.Message, ex);
             }
 

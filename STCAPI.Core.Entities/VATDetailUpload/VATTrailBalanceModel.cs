@@ -20,5 +20,6 @@ namespace STCAPI.Core.Entities.VATDetailUpload
         public decimal EndingBalance { get; set; }
 
         public int UploadInvoiceDetailId { get; set; }
+        public string CompanyName { get; set; }
     }
 }
