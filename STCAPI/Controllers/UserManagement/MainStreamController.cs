@@ -1,14 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using STAAPI.Infrastructure.Repository.GenericRepository;
 using STCAPI.Core.Entities.Logger;
-using STCAPI.Core.Entities.UserManagement;
-using STCAPI.Core.ViewModel.ResponseModel;
 using STCAPI.DataLayer.AdminPortal;
 using STCAPI.ErrorLogService;
 using STCAPI.Helpers;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -82,11 +78,11 @@ namespace STCAPI.Controllers.UserManagement
             {
                 var mainStreamModel = await _IMainStreamRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
 
-                var stageModel = await _IStageMasterRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+                //var stageModel = await _IStageMasterRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
 
-                var response = CommonServiceHelper.GetMainStreamDetail(mainStreamModel, stageModel);
+                //var response = CommonServiceHelper.GetMainStreamDetail(mainStreamModel, stageModel);
 
-                return Ok(response);
+                return Ok(mainStreamModel);
             }
             catch (Exception ex)
             {

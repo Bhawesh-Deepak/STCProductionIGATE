@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace STAAPI.Infrastructure.Repository.GenericRepository
 {
-    public interface IGenericRepository<TEntity,T> where TEntity:class
+    public interface IGenericRepository<TEntity, T> where TEntity : class
     {
         Task<ResponseModel<TEntity, T>> GetAllEntities(Func<TEntity, bool> where);
         Task<ResponseModel<TEntity, T>> CreateEntity(TEntity[] model);

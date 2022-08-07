@@ -13,7 +13,6 @@ using STCAPI.Core.ViewModel.RequestModel;
 using STCAPI.ErrorLogService;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace STCAPI.Controllers.STCVAT

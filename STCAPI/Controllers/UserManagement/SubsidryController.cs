@@ -1,7 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using STAAPI.Infrastructure.Repository.GenericRepository;
-using STCAPI.Controllers.AdminPortal;
 using STCAPI.Core.Entities.Logger;
 using STCAPI.Core.Entities.Subsidry;
 using STCAPI.ErrorLogService;
@@ -154,17 +152,22 @@ namespace STCAPI.Controllers.UserManagement
         {
             try
             {
-                var deleteModel = await _ISubsidryUserMapping.GetAllEntities(x => x.UserName == model.UserName);
+                //var deleteModel = await _ISubsidryUserMapping.GetAllEntities(x => x.UserName == model.UserName);
 
-                deleteModel.TEntities.ToList().ForEach(data =>
-                {
-                    data.IsActive = false;
-                    data.IsDeleted = true;
-                });
+                //deleteModel.TEntities.ToList().ForEach(data =>
+                //{
+                //    data.IsActive = false;
+                //    data.IsDeleted = true;
+                //});
 
-                var deleteReponse = await _ISubsidryUserMapping.DeleteEntity(deleteModel.TEntities.ToArray());
+                //var deleteReponse = await _ISubsidryUserMapping.DeleteEntity(deleteModel.TEntities.ToArray());
 
                 model.Id = 0;
+                model.IsActive = true;
+                model.IsDeleted = false;
+                model.CreatedBy = "admin";
+                model.CreatedDate = DateTime.Now;
+                model.UpdatedDate = DateTime.Now;
 
                 var createRepsonse = await _ISubsidryUserMapping.CreateEntity(new List<SubsidryUserMapping>() { model }.ToArray());
 
@@ -269,6 +272,22 @@ namespace STCAPI.Controllers.UserManagement
                 return BadRequest("Something wents wrong, Please contact admin Team !");
             }
 
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        public async Task<IActionResult> GetCompanyDetailByUserName(string userName)
+        {
+            var response = await _ISubsidryUserMapping.GetAllEntities(x => x.UserName.Trim().ToLower() == userName.Trim().ToLower()
+                 && x.IsActive && !x.IsDeleted
+            );
+            return Ok(response);
         }
     }
 }

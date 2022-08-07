@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CommonHelper
 {
@@ -54,7 +51,7 @@ namespace CommonHelper
                             {
                                 pro.SetValue(obj, string.Empty, null);
                             }
-                          
+
 
                         }
 

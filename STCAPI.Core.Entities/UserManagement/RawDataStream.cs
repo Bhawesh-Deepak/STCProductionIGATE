@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace STCAPI.DataLayer.AdminPortal
 {
     [Table("RawDataStream")]
-    public class RawDataStream:BaseModel<int>
+    public class RawDataStream : BaseModel<int>
     {
         public int StreamId { get; set; }
         public string Name { get; set; }

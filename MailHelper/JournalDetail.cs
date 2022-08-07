@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MailHelper
+﻿namespace MailHelper
 {
     public record JournalDetail
     {
@@ -20,6 +14,6 @@ namespace MailHelper
         public string DR { get; set; }
         public string LineDescription { get; set; }
         public string HeaderLineKey { get; set; }
-        
+
     }
 }

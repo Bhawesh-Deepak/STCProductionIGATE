@@ -1,9 +1,6 @@
 ﻿using STCAPI.Core.Entities.Common;
 using STCAPI.Core.Entities.STCVAT;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace STAAPI.Infrastructure.Repository.STCVATRepository

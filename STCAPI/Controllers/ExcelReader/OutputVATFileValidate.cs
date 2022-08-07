@@ -32,7 +32,7 @@ namespace STCAPI.Controllers.ExcelReader
         /// </summary>
         /// <param name="hostingEnvironment"></param>
         /// <param name="errorLogModelRepo"></param>
-        public OutputVATFileValidate(IHostingEnvironment hostingEnvironment, IGenericRepository<ErrorLogModel, int>  errorLogModelRepo)
+        public OutputVATFileValidate(IHostingEnvironment hostingEnvironment, IGenericRepository<ErrorLogModel, int> errorLogModelRepo)
         {
             _IHostingEnviroment = hostingEnvironment;
             _IErrorLogRepository = errorLogModelRepo;

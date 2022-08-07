@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace STCAPI.Core.Entities.UserManagement
 {
     [Table("MainStream")]
-    public class MainStreamModel: BaseModel<int>
+    public class MainStreamModel : BaseModel<int>
     {
         public string MainStreamName { get; set; }
         public string ShortName { get; set; }

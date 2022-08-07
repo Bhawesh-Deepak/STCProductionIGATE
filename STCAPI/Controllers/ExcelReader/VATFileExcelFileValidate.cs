@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 namespace STCAPI.Controllers.ExcelReader
 {
     /// <summary>
-    /// 
+    /// VAT File validate code to vaidate the VAT INPUT File, and send the error code to the client as response.
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
@@ -62,7 +62,7 @@ namespace STCAPI.Controllers.ExcelReader
 
                 var errorDetails = GetErrorDetails(errorResult);
 
-                return Ok(new List<SubsidryErrorDetail>());
+                return Ok(errorDetails);
 
             }
             catch (Exception ex)
@@ -153,7 +153,7 @@ namespace STCAPI.Controllers.ExcelReader
                             model.ContractStartDate = Convert.ToString(inputVatInvoiceDetail.Rows[i][37] ?? DateTime.Now.AddYears(100));
                             model.ContractEndDate = Convert.ToString(inputVatInvoiceDetail.Rows[i][38] ?? DateTime.Now.AddYears(100));
                             model.OriginalInvoiceNumberForDebitCreditNote = Convert.ToString(inputVatInvoiceDetail.Rows[i][39]);
-
+                           
                             model.TaxLineNumber = Convert.ToString(inputVatInvoiceDetail.Rows[i][40]);
                             model.ProductType = Convert.ToString(inputVatInvoiceDetail.Rows[i][41]);
                             model.TaxCode = Convert.ToString(inputVatInvoiceDetail.Rows[i][42]);
@@ -195,10 +195,9 @@ namespace STCAPI.Controllers.ExcelReader
                     model.PropertyName = data.Value.Item1;
                     model.ErrorDetail = data.Value.Item2;
                     model.rowNumber = data.Key;
-
                     models.Add(model);
                 }
-                return models;
+                return models.ToList().DistinctBy(x=>x.PropertyName).ToList();
             }
             catch (Exception ex)
             {

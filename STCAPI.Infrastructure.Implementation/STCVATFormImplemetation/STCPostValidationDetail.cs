@@ -4,9 +4,6 @@ using STCAPI.Core.Entities.Common;
 using STCAPI.Core.Entities.Context;
 using STCAPI.Core.Entities.STCVAT;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace STCAPI.Infrastructure.Implementation.STCVATFormImplemetation
@@ -14,7 +11,8 @@ namespace STCAPI.Infrastructure.Implementation.STCVATFormImplemetation
     public class STCPostValidationDetail : ISTCPOstValidationRepository
     {
         private STCContext context;
-        public  STCPostValidationDetail(IConfiguration Configuration) {
+        public STCPostValidationDetail(IConfiguration Configuration)
+        {
             context = new STCContext(Configuration);
         }
         public async Task<ResponseModel<STCPostValidation, int>> CreateEntity(STCPostValidation[] model)

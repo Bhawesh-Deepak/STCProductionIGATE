@@ -59,6 +59,8 @@ namespace STCAPI.Controllers.Configuration
         /// 
         /// 200: on success exceution for API EndPoint will get the data with 200 status code
         /// 
+        /// On Exception We will log the Exception So that we get the complete log Information
+        /// 
         /// </remarks>
         /// <returns></returns>
         [HttpGet]
@@ -115,6 +117,16 @@ namespace STCAPI.Controllers.Configuration
         /// Get stream detail data
         /// </summary>
         /// <param name="mainStreamId"></param>
+        /// 
+        /// <remarks> Using API to get the complete stage details
+        /// 
+        /// AllowAnnonymous -> Authentication and Authorization not required.
+        /// 
+        /// 200: on success exceution for API EndPoint will get the data with 200 status code
+        /// 
+        /// On Exception We will log the Exception So that we get the complete log Information
+        /// 
+        /// </remarks>
         /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
@@ -139,6 +151,16 @@ namespace STCAPI.Controllers.Configuration
         /// Create configuration 
         /// </summary>
         /// <param name="model"></param>
+        /// 
+        ///<remarks> Using API to get the complete stage details
+        /// 
+        /// AllowAnnonymous -> Authentication and Authorization not required.
+        /// 
+        /// 200: on success exceution for API EndPoint will get the data with 200 status code
+        /// 
+        /// On Exception We will log the Exception So that we get the complete log Information
+        /// 
+        /// </remarks>
         /// <returns></returns>
         [HttpPost]
         [Produces("application/json")]
@@ -164,6 +186,16 @@ namespace STCAPI.Controllers.Configuration
         /// Get Configuration Detail data
         /// </summary>
         /// <param name="configurationTypeId"></param>
+        /// 
+        /// <remarks> Using API to get the complete stage details
+        /// 
+        /// AllowAnnonymous -> Authentication and Authorization not required.
+        /// 
+        /// 200: on success exceution for API EndPoint will get the data with 200 status code
+        /// 
+        /// On Exception We will log the Exception So that we get the complete log Information
+        /// 
+        /// </remarks>
         /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
@@ -189,6 +221,16 @@ namespace STCAPI.Controllers.Configuration
         /// Update Configuration detail information 
         /// </summary>
         /// <param name="model"></param>
+        /// 
+        ///<remarks> Using API to get the complete stage details
+        /// 
+        /// AllowAnnonymous -> Authentication and Authorization not required.
+        /// 
+        /// 200: on success exceution for API EndPoint will get the data with 200 status code
+        /// 
+        /// On Exception We will log the Exception So that we get the complete log Information
+        /// 
+        /// </remarks>
         /// <returns></returns>
         [HttpPost]
         [Produces("application/json")]
@@ -222,6 +264,16 @@ namespace STCAPI.Controllers.Configuration
         /// Delete  configuration detail information
         /// </summary>
         /// <param name="id"></param>
+        /// 
+        ///<remarks> Using API to get the complete stage details
+        /// 
+        /// AllowAnnonymous -> Authentication and Authorization not required.
+        /// 
+        /// 200: on success exceution for API EndPoint will get the data with 200 status code
+        /// 
+        /// On Exception We will log the Exception So that we get the complete log Information
+        /// 
+        /// </remarks>
         /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]

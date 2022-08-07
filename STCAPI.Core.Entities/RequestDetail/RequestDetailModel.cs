@@ -1,16 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using STCAPI.Core.Entities.Common;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace STCAPI.Core.Entities.RequestDetail
 {
     [Table("NewRequestDetails")]
-    public class RequestDetailModel: BaseModel<int>
+    public class RequestDetailModel : BaseModel<int>
     {
         public string Category { get; set; }
         public string Priority { get; set; }

@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace STCAPI.Helper
+﻿namespace STCAPI.Helper
 {
     public class LogHelper
     {

@@ -1,15 +1,11 @@
 ﻿using STCAPI.Core.Entities.Common;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace STCAPI.Core.Entities.VATDetailUpload
 {
     [Table("OutputVATDetail")]
-    public class STCVATOutputModel: BaseModel<int>
+    public class STCVATOutputModel : BaseModel<int>
     {
         public string InvoiceNumber { get; set; }
         public string InvoiceDocSequence { get; set; }
@@ -53,7 +49,7 @@ namespace STCAPI.Core.Entities.VATDetailUpload
         public string ContractNumber { get; set; }
         public string ContractDescription { get; set; }
         public DateTime? ContractStartDate { get; set; }
-        public DateTime?  ContractEndDate { get; set; }
+        public DateTime? ContractEndDate { get; set; }
         public string OriginalInvoice { get; set; }
         public string PoNumber { get; set; }
         public string UniversalUniqueInvoiceIndentifier { get; set; }
@@ -62,5 +58,6 @@ namespace STCAPI.Core.Entities.VATDetailUpload
         public string InvoiceTamperResistantCounterValue { get; set; }
         public int UploadInvoiceDetailId { get; set; }
         public string CompanyName { get; set; }
+        public DateTime Period { get; set; }
     }
 }

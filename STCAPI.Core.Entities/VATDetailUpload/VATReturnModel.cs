@@ -1,15 +1,11 @@
 ﻿using STCAPI.Core.Entities.Common;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace STCAPI.Core.Entities.VATDetailUpload
 {
     [Table("VATReturnDetail")]
-    public class VATReturnModel: BaseModel<int>
+    public class VATReturnModel : BaseModel<int>
     {
         public string VATType { get; set; }
         public decimal? VATTypeId { get; set; }
@@ -20,5 +16,6 @@ namespace STCAPI.Core.Entities.VATDetailUpload
         public string VATReturnDetail { get; set; }
         public int UploadInvoiceDetailId { get; set; }
         public string CompanyName { get; set; }
+        public DateTime Period { get; set; }
     }
 }

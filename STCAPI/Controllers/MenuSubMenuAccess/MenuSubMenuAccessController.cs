@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using STAAPI.Infrastructure.Repository.GenericRepository;
 using STCAPI.Core.Entities.Logger;
 using STCAPI.Core.Entities.MenuSubMenu;
@@ -33,7 +32,7 @@ namespace STCAPI.Controllers.MenuSubMenuAccess
         /// Table Used: MenuSubMenu
         /// <param name="menuSubMenuRepository"></param>
         /// <param name="menuSubMenuAccessReopsitory"></param>
-        public MenuSubMenuAccessController(IGenericRepository<MenuSubMenuModel, int> menuSubMenuRepository, 
+        public MenuSubMenuAccessController(IGenericRepository<MenuSubMenuModel, int> menuSubMenuRepository,
             IGenericRepository<MenuSubMenuAccessModel, int> menuSubMenuAccessReopsitory, IGenericRepository<ErrorLogModel, int> errorLogRepository)
         {
             _IMenuSubMenuRepository = menuSubMenuRepository;

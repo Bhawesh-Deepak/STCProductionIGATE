@@ -1,9 +1,5 @@
 ﻿using STCAPI.Core.ViewModel.RequestModel;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CommonHelper
 {
@@ -11,63 +7,63 @@ namespace CommonHelper
     {
         public static IDictionary<int, (string, string)> ValidateInputVatData(List<InputVATFileVm> models)
         {
-            IDictionary<int, (string,string)> errorResult = new Dictionary<int, (string, string)>();
+            IDictionary<int, (string, string)> errorResult = new Dictionary<int, (string, string)>();
             int count = 3;
             foreach (var data in models)
             {
                 if (string.IsNullOrEmpty(data.InvoiceType))
-                    errorResult.Add(count++,("InvoiceType", $"Invoice Type is mandatory"));
+                    errorResult.Add(count++, ("InvoiceType", $"Invoice Type is mandatory"));
 
-                if(string.IsNullOrEmpty(data.InvoiceNumber))
-                    errorResult.Add(count++,("Invoice Number", $"Invoice Number is mandatory"));
+                if (string.IsNullOrEmpty(data.InvoiceNumber))
+                    errorResult.Add(count++, ("Invoice Number", $"Invoice Number is mandatory"));
 
                 if (string.IsNullOrEmpty(data.InvoiceDocNumber))
-                    errorResult.Add(count++,("InvoiceDocNumber", $"InvoiceDocNumber is mandatory"));
+                    errorResult.Add(count++, ("InvoiceDocNumber", $"InvoiceDocNumber is mandatory"));
 
                 if (string.IsNullOrEmpty(data.InvoiceDate))
-                    errorResult.Add(count++,("InvoiceDate", $"InvoiceDate is mandatory"));
+                    errorResult.Add(count++, ("InvoiceDate", $"InvoiceDate is mandatory"));
 
 
                 if (string.IsNullOrEmpty(data.GLDate))
-                    errorResult.Add(count++,("GL Date", $"GL Date is mandatory"));
+                    errorResult.Add(count++, ("GL Date", $"GL Date is mandatory"));
 
                 if (string.IsNullOrEmpty(data.TotalInvoiceAmount))
-                    errorResult.Add(count++,("TotalInvoiceAmount", $"TotalInvoiceAmount is mandatory"));
+                    errorResult.Add(count++, ("TotalInvoiceAmount", $"TotalInvoiceAmount is mandatory"));
 
                 if (string.IsNullOrEmpty(data.InvoiceCurrency))
-                    errorResult.Add(count++,("InvoiceCurrency", $"InvoiceCurrency is mandatory"));
+                    errorResult.Add(count++, ("InvoiceCurrency", $"InvoiceCurrency is mandatory"));
 
-                if (!string.IsNullOrEmpty(data.InvoiceCurrency) && data.InvoiceCurrency !="SAR" && string.IsNullOrEmpty(data.CurrencyExchangeRate))
-                    errorResult.Add(count++,("CurrencyExchangeRate", $"CurrencyExchangeRate is mandatory"));
+                if (!string.IsNullOrEmpty(data.InvoiceCurrency) && data.InvoiceCurrency != "SAR" && string.IsNullOrEmpty(data.CurrencyExchangeRate))
+                    errorResult.Add(count++, ("CurrencyExchangeRate", $"CurrencyExchangeRate is mandatory"));
 
                 if (string.IsNullOrEmpty(data.SARInvoiceAmount))
-                    errorResult.Add(count++,("SARInvoiceAmount", $"SARInvoiceAmount is mandatory"));
+                    errorResult.Add(count++, ("SARInvoiceAmount", $"SARInvoiceAmount is mandatory"));
 
                 if (string.IsNullOrEmpty(data.SuppierNumber))
-                    errorResult.Add(count++,("SuppierNumber", $"SuppierNumber is mandatory"));
+                    errorResult.Add(count++, ("SuppierNumber", $"SuppierNumber is mandatory"));
 
                 if (string.IsNullOrEmpty(data.SupplierName))
-                    errorResult.Add(count++,("SupplierName", $"SupplierName is mandatory"));
+                    errorResult.Add(count++, ("SupplierName", $"SupplierName is mandatory"));
 
                 if (string.IsNullOrEmpty(data.SupplierSite))
-                    errorResult.Add(count++,("SupplierSite", $"SupplierSite is mandatory"));
+                    errorResult.Add(count++, ("SupplierSite", $"SupplierSite is mandatory"));
 
                 if (string.IsNullOrEmpty(data.SupplierAddress))
-                    errorResult.Add(count++,("SupplierAddress", $"SupplierAddress is mandatory"));
+                    errorResult.Add(count++, ("SupplierAddress", $"SupplierAddress is mandatory"));
 
                 if (string.IsNullOrEmpty(data.SupplierCountry))
-                    errorResult.Add(count++,("SupplierCountry", $"SupplierCountry is mandatory"));
+                    errorResult.Add(count++, ("SupplierCountry", $"SupplierCountry is mandatory"));
 
                 if (string.IsNullOrEmpty(data.SupplierCountry))
-                    errorResult.Add(count++,("SupplierCountry", $"SupplierCountry is mandatory"));
+                    errorResult.Add(count++, ("SupplierCountry", $"SupplierCountry is mandatory"));
 
-                if (string.IsNullOrEmpty(data.SupplierBankAccount) && data.PaymentMethod.Trim().ToLower()=="transfer")
+                if (string.IsNullOrEmpty(data.SupplierBankAccount) && data.PaymentMethod.Trim().ToLower() == "transfer")
                     errorResult.Add(count++, ("SupplierBankAccount", $"SupplierBankAccount is mandatory"));
 
                 if (string.IsNullOrEmpty(data.SupplierVATRegistrationNumber))
                     errorResult.Add(count++, ("SupplierVATRegistrationNumber", $"SupplierVATRegistrationNumber is mandatory"));
 
-                if (string.IsNullOrEmpty(data.PaymentMethod) && data.InvoiceType=="VAT-E Invoice")
+                if (string.IsNullOrEmpty(data.PaymentMethod) && data.InvoiceType == "VAT-E Invoice")
                     errorResult.Add(count++, ("PaymentMethod", $"PaymentMethod is mandatory"));
 
                 if (string.IsNullOrEmpty(data.PaymentTerm))
@@ -83,10 +79,10 @@ namespace CommonHelper
                 if (string.IsNullOrEmpty(data.InvoiceLineDescription))
                     errorResult.Add(count++, ("InvoiceLineDescription", $"InvoiceLineDescription is mandatory"));
 
-                if (string.IsNullOrEmpty(data.Quantity) && data.InvoiceType=="VAT E-Invoice")
+                if (string.IsNullOrEmpty(data.Quantity) && data.InvoiceType == "VAT E-Invoice")
                     errorResult.Add(count++, ("Quantity", $"Quantity is mandatory"));
 
-                if (string.IsNullOrEmpty(data.UnitPrice) && data.InvoiceType=="VAT E-Invoice")
+                if (string.IsNullOrEmpty(data.UnitPrice) && data.InvoiceType == "VAT E-Invoice")
                     errorResult.Add(count++, ("UnitPrice", $"UnitPrice is mandatory"));
 
                 if (string.IsNullOrEmpty(data.DiscountAmount) && data.InvoiceType == "VAT E-Invoice")

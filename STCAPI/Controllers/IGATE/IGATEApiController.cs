@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using STAAPI.Infrastructure.Repository.GenericRepository;
 using STCAPI.Core.Entities.IGATE;
@@ -19,12 +18,16 @@ namespace STCAPI.Controllers.IGATE
     /// <summary>
     /// I GATE Api's for Authentication and request Processing 
     /// </summary>
+    /// <remarks>
+    ///  I GATE API To initiate the I GATE Approval Cycle
+    /// </remarks>
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class IGATEApiController : ControllerBase
     {
         private readonly IGenericRepository<VATRequestUpdate, int> _IVATRequestUpdateRepo;
         private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
+
 
         /// <summary>
         /// Inject required service to controller contructor
@@ -39,8 +42,20 @@ namespace STCAPI.Controllers.IGATE
         /// <summary>
         /// Authenticate Response From IGATE API
         /// </summary>
-        /// <returns></returns>
         /// 
+        ///<remarks> Using API to get the complete stage details
+        /// 
+        /// AllowAnnonymous -> Authentication and Authorization not required.
+        /// 
+        /// 200: on success exceution for API EndPoint will get the data with 200 status code With Token and Expiry Time
+        /// We need to send this Token to further request for I GATE Approval Cycle, For Each Request we send the VAT Request Detail with Auth Token
+        /// 
+        /// On Exception We will log the Exception So that we get the complete log Information
+        /// </remarks>
+        /// <returns>
+        ///    200  With Authentication Token
+        /// </returns>
+
 
         [HttpGet]
         [Produces("application/json")]
@@ -72,11 +87,22 @@ namespace STCAPI.Controllers.IGATE
 
 
         /// <summary>
-        /// 
+        /// Initiate the VAT Approval Cycle with VAT Details and Authentication Token
         /// </summary>
         /// <param name="model"></param>
         /// <param name="token"></param>
+        /// 
+        ///<remarks> Using API to get the complete stage details
+        /// 
+        /// AllowAnnonymous -> Authentication and Authorization  required.
+        /// 
+        /// We need to send the VAT Request detail with Authentication Token which comes from  Header
+        /// 
+        /// On Exception We will log the Exception So that we get the complete log Information
+        /// </remarks>
         /// <returns></returns>
+        /// <response code="200">Successful execution of VAT Request Details</response>
+        /// <response code="400">If Some Exception occured in VAT Request Detail from IGATE</response>
         [HttpPost]
         [Produces("application/json")]
         [Consumes("application/json")]
@@ -101,7 +127,8 @@ namespace STCAPI.Controllers.IGATE
                     return BadRequest("Something wents wrong.");
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
 
                 await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(IGATEApiController),
                           nameof(VATRequestDetails), ex.Message, ex.ToString());

@@ -1,20 +1,22 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using STCAPI.Core.Entities.Configuration;
+using STCAPI.Core.Entities.IGATE;
 using STCAPI.Core.Entities.InvoiceDetails;
+using STCAPI.Core.Entities.Logger;
+using STCAPI.Core.Entities.Master;
+using STCAPI.Core.Entities.MenuSubMenu;
 using STCAPI.Core.Entities.Reconcilation;
 using STCAPI.Core.Entities.Report;
+using STCAPI.Core.Entities.ReportCreteria;
 using STCAPI.Core.Entities.RequestDetail;
+using STCAPI.Core.Entities.SqlQueryValidation;
 using STCAPI.Core.Entities.STCVAT;
 using STCAPI.Core.Entities.Subsidry;
 using STCAPI.Core.Entities.UserManagement;
 using STCAPI.Core.Entities.VATDetailUpload;
+using STCAPI.Core.Entities.VATReport;
 using STCAPI.DataLayer.AdminPortal;
-using STCAPI.Core.Entities.ReportCreteria;
-using STCAPI.Core.Entities.MenuSubMenu;
-using STCAPI.Core.Entities.SqlQueryValidation;
-using STCAPI.Core.Entities.IGATE;
-using STCAPI.Core.Entities.Logger;
 
 namespace STCAPI.Core.Entities.Context
 {
@@ -73,9 +75,11 @@ namespace STCAPI.Core.Entities.Context
         public virtual DbSet<SubsidryInvoiceAttachment> SubsidryInvoiceAttachments { get; set; }
         public virtual DbSet<ReportCreteriaModel> ReportCreterias { get; set; }
         public virtual DbSet<MenuSubMenuModel> MenuSubMenuModels { get; set; }
-        public virtual DbSet<MenuSubMenuAccessModel> MenuSubMenuAccessModels{ get; set; }
+        public virtual DbSet<MenuSubMenuAccessModel> MenuSubMenuAccessModels { get; set; }
         public virtual DbSet<SqlQueryValidationModel> SqlQueryValidations { get; set; }
         public virtual DbSet<VATRequestUpdate> VATRequestUpdates { get; set; }
         public virtual DbSet<ErrorLogModel> ErrorLogModels { get; set; }
+        public virtual DbSet<VATReportMapping> VATReportMappings { get; set; }
+        public virtual DbSet<PeriodMaster> PeriodMasters { get; set; }
     }
 }

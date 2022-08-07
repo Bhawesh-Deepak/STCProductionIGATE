@@ -1,11 +1,8 @@
 using MailHelper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using STAAPI.Infrastructure.Repository.GenericRepository;
 using STAAPI.Infrastructure.Repository.PortalAccessRepository;
@@ -15,11 +12,8 @@ using STCAPI.Infrastructure.Implementation.GenericImplementation;
 using STCAPI.Infrastructure.Implementation.PortalAccess;
 using STCAPI.Infrastructure.Implementation.STCVATFormImplemetation;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace STCAPI
 {
@@ -54,16 +48,19 @@ namespace STCAPI
             services.AddTransient<ISTCPOstValidationRepository, STCPostValidationDetail>();
             services.AddTransient<IReconcilationSummaryRepository, ReconcilationSummaryImplementation>();
             services.AddTransient<IPortalAccessRepository, PortalAccessImplementation>();
+            services.AddTransient(typeof(IDapperRepository<>), typeof(DapperImplementation<>));
 
-            services.AddMvc(option => {
+            services.AddMvc(option =>
+            {
                 option.OutputFormatters.Insert(0, new CSVFormatter());
             });
 
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            services.AddCors(option => {
-                option.AddPolicy("AllowAnyOrigin", 
+            services.AddCors(option =>
+            {
+                option.AddPolicy("AllowAnyOrigin",
                    option => option.AllowAnyOrigin()
                  .AllowAnyMethod()
                  .AllowAnyHeader()
@@ -78,7 +75,7 @@ namespace STCAPI
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "STCAPI v1"));
-            
+
             app.UseRouting();
             app.UseStaticFiles();
             app.UseAuthorization();

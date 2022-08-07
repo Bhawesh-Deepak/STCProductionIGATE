@@ -7,6 +7,6 @@
         Updated,
         Success,
         AlreadyExists,
-        Error=500
+        Error = 500
     }
 }

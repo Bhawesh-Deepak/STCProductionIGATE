@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace STCAPI.Core.Entities.UserManagement
+﻿namespace STCAPI.Core.Entities.UserManagement
 {
     public class PortalAccessVm
     {
@@ -21,6 +15,6 @@ namespace STCAPI.Core.Entities.UserManagement
         public string ObjectName { get; set; }
         public string ObjectLongName { get; set; }
         public string ObjectShortName { get; set; }
-        public bool  Flag { get; set; }
+        public bool Flag { get; set; }
     }
 }

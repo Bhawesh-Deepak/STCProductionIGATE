@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace STCAPI.Core.Entities.STCVAT
 {
     [Table("STCVAT_Form")]
-    public class STCVATForm:BaseModel<int>
+    public class STCVATForm : BaseModel<int>
     {
         public string HeaderLineKey { get; set; }
         public string TaxClassificationCode { get; set; }

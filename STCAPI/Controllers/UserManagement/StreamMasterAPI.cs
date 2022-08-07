@@ -75,11 +75,11 @@ namespace STCAPI.Controllers.AdminPortal
             {
                 var mainStreamData = await _IMainStreamRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
 
-                var streamData = await _IStreamMasterRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+                //var streamData = await _IStreamMasterRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
 
-                List<StreamDetailVm> responseData = CommonServiceHelper.GetStreamDetails(mainStreamData, streamData);
+                //List<StreamDetailVm> responseData = CommonServiceHelper.GetStreamDetails(mainStreamData, streamData);
 
-                return Ok(responseData);
+                return Ok(mainStreamData);
             }
             catch (Exception ex)
             {

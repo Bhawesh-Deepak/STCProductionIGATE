@@ -1,15 +1,11 @@
 ﻿using STCAPI.Core.Entities.Common;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace STCAPI.Core.Entities.VATDetailUpload
 {
     [Table("InputVATDetail")]
-    public class InputVATDataFile: BaseModel<int>
+    public class InputVATDataFile : BaseModel<int>
     {
         public string InvoiceType { get; set; }
         public string InvoiceSource { get; set; }
@@ -33,7 +29,7 @@ namespace STCAPI.Core.Entities.VATDetailUpload
         public string PaymentStatus { get; set; }
         public decimal? PaymentAmount { get; set; }
         public string PaymentMethod { get; set; }
-        public string PaymentTerm{ get; set; }
+        public string PaymentTerm { get; set; }
         public int? InvoiceLineNumber { get; set; }
         public string InvoiceLineDescription { get; set; }
         public string PONumber { get; set; }
@@ -65,5 +61,6 @@ namespace STCAPI.Core.Entities.VATDetailUpload
         public string RecoverableTaxGLAccountNumber { get; set; }
         public int UploadInvoiceDetailId { get; set; }
         public string CompanyName { get; set; }
+        public DateTime Period { get; set; }
     }
 }

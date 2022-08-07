@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace STCAPI.Core.Entities.Report
 {
     [Table("NewReport")]
-    public class NewReportModel:BaseModel<int>
+    public class NewReportModel : BaseModel<int>
     {
         public string MainStream { get; set; }
         public string Stream { get; set; }

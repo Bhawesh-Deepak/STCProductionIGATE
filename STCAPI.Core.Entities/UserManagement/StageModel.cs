@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace STCAPI.Core.Entities.UserManagement
 {
     [Table("Stages")]
-    public class StageModel: BaseModel<int>
+    public class StageModel : BaseModel<int>
     {
         public string StageName { get; set; }
     }

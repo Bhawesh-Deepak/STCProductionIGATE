@@ -1,10 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using STAAPI.Infrastructure.Repository.GenericRepository;
 using STCAPI.Core.Entities.Common;
 using STCAPI.Core.Entities.Logger;
 using STCAPI.Core.Entities.SqlQueryValidation;
-using STCAPI.Core.ViewModel.RequestModel;
 using STCAPI.ErrorLogService;
 using System;
 using System.Collections.Generic;
@@ -41,19 +39,45 @@ namespace STCAPI.Controllers.QueryValidation
         [HttpPost]
         [Produces("application/json")]
         [Consumes("application/json")]
-        public async Task<IActionResult> CreateQuery(QueryValidaation model)
+        public async Task<IActionResult> CreateQuery(SqlQueryValidationModel model)
         {
             try
             {
-                var dbModel = new SqlQueryValidationModel();
-                dbModel.CreatedDate = DateTime.Now;
-                dbModel.IsActive = true;
-                dbModel.IsDeleted = false;
-                dbModel.CreatedBy = model.UserName;
-                dbModel.UserName = model.UserName;
-                dbModel.SqlQuery = model.SqlQuery;
+                model.IsActive = true;
+                model.IsDeleted = false;
+                model.CreatedDate = DateTime.Now;
+                model.UpdatedDate = DateTime.Now;
+                model.CreatedBy = model.CreatedBy ?? "Admin";
 
-                var respons = await _sqlQueryValidationRepo.CreateEntity(new List<SqlQueryValidationModel>() { dbModel }.ToArray());
+                //Get MaxMonth from SqlValidator Based on Stream name and Active; if MaxMonth is greater than the database maxMonth 
+                //Then insert the record with Active else mark the record deactive and insert this to table. With Previous Data as active
+                var validatorDetails = await _sqlQueryValidationRepo.GetAllEntities(x => x.Stream.ToLower().Trim()
+                == model.Stream.ToLower().Trim() && x.IsActive && !x.IsDeleted);
+
+                if (validatorDetails.TEntities.Any())
+                {
+                    var maxMonth = validatorDetails.TEntities.First().MaxMonth;
+                    if (model.MaxMonth > maxMonth)
+                    {
+                        model.IsActive = true;
+                        model.IsDeleted = false;
+
+                        validatorDetails.TEntities.ToList().ForEach(data =>
+                        {
+                            data.IsActive = false;
+                            data.IsDeleted = true;
+                        });
+                        await _sqlQueryValidationRepo.DeleteEntity(validatorDetails.TEntities.ToArray());
+                    }
+                    else
+                    {
+                        model.IsDeleted = true;
+                        model.IsActive = false;
+                    }
+                }
+
+
+                var respons = await _sqlQueryValidationRepo.CreateEntity(new List<SqlQueryValidationModel>() { model }.ToArray());
                 return Ok(respons);
             }
             catch (Exception ex)

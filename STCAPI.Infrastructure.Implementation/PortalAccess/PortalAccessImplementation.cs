@@ -4,10 +4,7 @@ using STAAPI.Infrastructure.Repository.PortalAccessRepository;
 using STCAPI.Core.Entities.Context;
 using STCAPI.Core.Entities.UserManagement;
 using STCAPI.Infrastructure.Implementation.Common;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace STCAPI.Infrastructure.Implementation.PortalAccess
@@ -31,7 +28,7 @@ namespace STCAPI.Infrastructure.Implementation.PortalAccess
                 if (connection.State == System.Data.ConnectionState.Closed)
                     connection.Open();
 
-                var command = new MySqlCommand("SELECT * FROM Vw_PortalAccessDetail",connection);
+                var command = new MySqlCommand("SELECT * FROM Vw_PortalAccessDetail", connection);
 
                 using (var reader = command.ExecuteReader())
                 {
@@ -61,6 +58,6 @@ namespace STCAPI.Infrastructure.Implementation.PortalAccess
             }
         }
 
-      
+
     }
 }

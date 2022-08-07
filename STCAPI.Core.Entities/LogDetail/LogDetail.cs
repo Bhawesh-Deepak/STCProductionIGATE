@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace STCAPI.Core.Entities.LogDetail
 {
     [Table("LogTable")]
-    public class LogDetail:BaseModel<int>
+    public class LogDetail : BaseModel<int>
     {
         public string ModuleName { get; set; }
         public string SubModuleName { get; set; }

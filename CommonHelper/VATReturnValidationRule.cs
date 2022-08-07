@@ -1,9 +1,5 @@
 ﻿using STCAPI.Core.ViewModel.RequestModel;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CommonHelper
 {
@@ -38,11 +34,11 @@ namespace CommonHelper
                 if (string.IsNullOrEmpty(data.VATReturnDetail))
                     errorResult.Add(count++, ("VAT Return Detail", $"VAT Return Detail is mandatory"));
 
-                
+
                 if (string.IsNullOrEmpty(data.UploadInvoiceDetailId.ToString()))
                     errorResult.Add(count++, ("Upload Invoice DetailId", $"Upload Invoice Detail Id is mandatory"));
 
-                 
+
             }
             return errorResult;
 

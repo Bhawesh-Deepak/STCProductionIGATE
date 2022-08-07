@@ -4,10 +4,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using STAAPI.Infrastructure.Repository.GenericRepository;
 using STAAPI.Infrastructure.Repository.PortalAccessRepository;
-using STCAPI.Core.Entities.Common;
 using STCAPI.Core.Entities.Logger;
 using STCAPI.Core.Entities.UserManagement;
-using STCAPI.Core.ViewModel.ResponseModel;
 using STCAPI.ErrorLogService;
 using System;
 using System.Collections.Generic;
@@ -82,6 +80,7 @@ namespace STCAPI.Controllers.UserManagement
         /// <param name="userName"></param>
         /// <returns></returns>
         [HttpGet]
+        [Produces("application/json")]
         public async Task<IActionResult> GetUserAccess(string userName)
         {
             try

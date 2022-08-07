@@ -1,15 +1,12 @@
 ﻿using STCAPI.Core.Entities.Common;
 using STCAPI.DataLayer.AdminPortal;
-using STCAPI.ReqRespVm;
 using STCAPI.ReqRespVm.AdminPortal;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace STCAPI.Helpers
 {
-    public static  class CommonServiceHelper
+    public static class CommonServiceHelper
     {
         public static List<MainStreamVm> GetMainStreamDetail(ResponseModel<MainStreamMaster, int> mainStreamModel, ResponseModel<StageMaster, int> stageModel)
         {
@@ -30,14 +27,14 @@ namespace STCAPI.Helpers
 
             return response;
         }
-        public  static List<StreamDetailVm> GetStreamDetails(ResponseModel<MainStreamMaster, int> mainStreamData, ResponseModel<StreamMaster, int> streamData)
+        public static List<StreamDetailVm> GetStreamDetails(ResponseModel<MainStreamMaster, int> mainStreamData, ResponseModel<StreamMaster, int> streamData)
         {
             return (from mainData in mainStreamData.TEntities
                     join strData in streamData.TEntities
                     on mainData.Id equals strData.MainStreamId
                     select new StreamDetailVm
                     {
-                        Id=strData.Id,
+                        Id = strData.Id,
                         MainStreamId = strData.MainStreamId,
                         MainStreamName = mainData.Name,
                         Name = strData.Name,

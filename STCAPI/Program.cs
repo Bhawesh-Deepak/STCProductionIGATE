@@ -1,11 +1,10 @@
-using System;
-using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using System.IO;
+using Microsoft.Extensions.Hosting;
 using Serilog;
-using Serilog.Sinks.MariaDB;
 using Serilog.Sinks.MariaDB.Extensions;
+using System;
+using System.IO;
 
 namespace STCAPI
 {
@@ -44,7 +43,7 @@ namespace STCAPI
                 Log.Error("HostBuilder is up and running.");
                 Log.CloseAndFlush();
             }
-         
+
 
         }
 

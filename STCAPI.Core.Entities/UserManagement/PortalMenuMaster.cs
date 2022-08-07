@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace STCAPI.Core.Entities.UserManagement
 {
     [Table("PortalMenuMaster")]
-    public class PortalMenuMaster: BaseModel<int>
+    public class PortalMenuMaster : BaseModel<int>
     {
         public string Stage { get; set; }
         public string MainStream { get; set; }
@@ -17,6 +17,6 @@ namespace STCAPI.Core.Entities.UserManagement
         public bool Flag { get; set; }
         [NotMapped]
         public IFormFile PortalFile { get; set; }
-        
+
     }
 }

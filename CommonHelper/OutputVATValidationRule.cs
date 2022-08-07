@@ -16,7 +16,7 @@ namespace CommonHelper
                     errorResult.Add(count++, ("InvoiceNumber", $"InvoiceNumber is mandatory"));
                 if (string.IsNullOrEmpty(data.InvoiceDocSequence))
                     errorResult.Add(count++, ("InvoiceDocSequence", $"InvoiceDocSequence is mandatory"));
-                
+
                 if (string.IsNullOrEmpty(data.InvoiceType))
                     errorResult.Add(count++, ("InvoiceType", $"InvoiceType is mandatory"));
                 if (string.IsNullOrEmpty(data.InvoiceDate))
@@ -27,7 +27,7 @@ namespace CommonHelper
                     errorResult.Add(count++, ("InvoiceAmount", $"InvoiceAmount is mandatory"));
                 if (string.IsNullOrEmpty(data.InvoiceCurrency))
                     errorResult.Add(count++, ("InvoiceCurrency", $"InvoiceCurrency is mandatory"));
-                 
+
                 if (string.IsNullOrEmpty(data.SARInvoiceAmount))
                     errorResult.Add(count++, ("SARInvoiceAmount", $"SARInvoiceAmount is mandatory"));
                 if (string.IsNullOrEmpty(data.CustomerNumber))
@@ -38,7 +38,7 @@ namespace CommonHelper
                     errorResult.Add(count++, ("BillToAdress", $"BillToAdress is mandatory"));
                 if (string.IsNullOrEmpty(data.CustomerCountryName))
                     errorResult.Add(count++, ("CustomerCountryName", $"CustomerCountryName is mandatory"));
-                 if (string.IsNullOrEmpty(data.SellerNumber))
+                if (string.IsNullOrEmpty(data.SellerNumber))
                     errorResult.Add(count++, ("SellerNumber", $"SellerNumber is mandatory"));
                 if (string.IsNullOrEmpty(data.SellerVATRegistrationNumber))
                     errorResult.Add(count++, ("SellerVATRegistrationNumber", $"SellerVATRegistrationNumber is mandatory"));
@@ -86,7 +86,7 @@ namespace CommonHelper
                     errorResult.Add(count++, ("TaxAccount", $"TaxAccount is mandatory"));
                 if (string.IsNullOrEmpty(data.OriginalInvoice))
                     errorResult.Add(count++, ("OriginalInvoice", $"OriginalInvoice is mandatory"));
-            
+
 
             }
             return errorResult;

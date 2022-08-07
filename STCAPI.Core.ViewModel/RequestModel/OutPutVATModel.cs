@@ -19,7 +19,7 @@
         public string CustomerVATRegistrationNumber { get; set; }
         public string CustomerCommercialRegistrationNumber { get; set; }
         public string SellerNumber { get; set; }
-        public string SellerVATRegistrationNumber    { get; set; }
+        public string SellerVATRegistrationNumber { get; set; }
         public string SellerAddress { get; set; }
         public string GroupVARRegistrationNumber { get; set; }
         public string SellerCommercialNumber { get; set; }

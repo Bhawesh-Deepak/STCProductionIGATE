@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace STCAPI.DataLayer.AdminPortal
 {
     [Table("QlikDataAccess")]
-    public class QlikDataAccess:BaseModel<int>
+    public class QlikDataAccess : BaseModel<int>
     {
         public string StreamName { get; set; }
         public string UserName { get; set; }

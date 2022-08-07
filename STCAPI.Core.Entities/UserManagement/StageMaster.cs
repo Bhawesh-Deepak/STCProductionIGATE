@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace STCAPI.DataLayer.AdminPortal
 {
     [Table("StageMaster")]
-    public class StageMaster: BaseModel<int>
+    public class StageMaster : BaseModel<int>
     {
         public string Name { get; set; }
         public string LongName { get; set; }

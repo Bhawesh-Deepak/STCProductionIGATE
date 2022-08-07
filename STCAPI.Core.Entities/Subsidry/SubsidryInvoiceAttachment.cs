@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace STCAPI.Core.Entities.Subsidry
 {
     [Table("SubsidryInvoiceAttachment")]
-    public  class SubsidryInvoiceAttachment: BaseModel<int>
+    public class SubsidryInvoiceAttachment : BaseModel<int>
     {
         public int UploadInvoiceId { get; set; }
         public string InputAttachmentDetails { get; set; }

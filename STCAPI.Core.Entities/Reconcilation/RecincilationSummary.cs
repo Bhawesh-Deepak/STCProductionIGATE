@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace STCAPI.Core.Entities.Reconcilation
 {
     [Table("ReconcilationSummary")]
-    public class RecincilationSummary:BaseModel<int>
+    public class RecincilationSummary : BaseModel<int>
     {
         public string HeaderLineKey { get; set; }
         public string ReconcilationStatus { get; set; }

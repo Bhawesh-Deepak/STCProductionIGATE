@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-
-namespace STCAPI.Core.ViewModel.ResponseModel
+﻿namespace STCAPI.Core.ViewModel.ResponseModel
 {
-    public  class SubsidryAttachmentDetailResponse
+    public class SubsidryAttachmentDetailResponse
     {
         public int Id { get; set; }
         public string InputAttachments { get; set; }

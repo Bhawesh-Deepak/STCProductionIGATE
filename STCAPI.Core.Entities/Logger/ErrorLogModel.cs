@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace STCAPI.Core.Entities.Logger
 {
     [Table("ErrorLog")]
-    public class ErrorLogModel: BaseModel<int>
+    public class ErrorLogModel : BaseModel<int>
     {
         public string ControllerName { get; set; }
         public string ActionName { get; set; }

@@ -3,9 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace STCAPI.Helper
 {
-    public static  class AuthenticationExtension
+    public static class AuthenticationExtension
     {
-        public static IServiceCollection AddAuthenticationToken(this IServiceCollection services, IConfiguration configuration) {
+        public static IServiceCollection AddAuthenticationToken(this IServiceCollection services, IConfiguration configuration)
+        {
             //var sceret = configuration.GetSection("").GetSection("").Value;
             //var key = Encoding.ASCII.GetBytes(sceret);
             //services.AddAuthentication(x =>

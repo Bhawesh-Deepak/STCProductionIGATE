@@ -1,10 +1,5 @@
-﻿using MailHelper;
-using Microsoft.AspNetCore.Http;
-using System;
+﻿using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace STCAPI.Core.ViewModel.RequestModel
 {
@@ -20,7 +15,7 @@ namespace STCAPI.Core.ViewModel.RequestModel
         public string UserName { get; set; }
         public List<string> EmailTo { get; set; }
         public string EmailTemplate { get; set; }
-        public bool  IsEmaiSend { get; set; }
+        public bool IsEmaiSend { get; set; }
         public string EmailSubject { get; set; }
         public string Comments { get; set; }
     }

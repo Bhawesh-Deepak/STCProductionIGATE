@@ -6,15 +6,15 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using STAAPI.Infrastructure.Repository.GenericRepository;
-using STCAPI.Core.Entities.Enums;
 using STCAPI.Core.Entities.Logger;
+using STCAPI.Core.Entities.Master;
 using STCAPI.Core.Entities.Subsidry;
 using STCAPI.Core.Entities.VATDetailUpload;
 using STCAPI.Core.ViewModel.RequestModel;
 using STCAPI.Core.ViewModel.ResponseModel;
+using STCAPI.Core.ViewModel.SqlHelper;
 using STCAPI.ErrorLogService;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -42,7 +42,8 @@ namespace STCAPI.Controllers.ExcelReader
         private readonly IGenericRepository<SubsidryUserMapping, int> _IUserSubsidryUserMapping;
         private readonly IGenericRepository<SubsidryInvoiceAttachment, int> _ISubsidryInvoiceAttachmentRepository;
         private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
-
+        private readonly IDapperRepository<SubsidryDeActivateParams> _ISubsidryDapperRepository;
+        private readonly IGenericRepository<PeriodMaster, int> _IPeriodMasterRepository;
 
         private readonly ILogger<ReadExcelData> _logger;
         public ReadExcelData(IHostingEnvironment hostingEnvironment,
@@ -53,7 +54,8 @@ namespace STCAPI.Controllers.ExcelReader
             IGenericRepository<UploadInvoiceDetail, int> uploadInvoiceRepo,
             ILogger<ReadExcelData> logger, IGenericRepository<SubsidryUserMapping, int> userSubsidryMapping,
             IGenericRepository<SubsidryInvoiceAttachment, int> subsidryInvoiceAttachmentRepository,
-            IGenericRepository<ErrorLogModel, int> errorLogModelRepo)
+            IGenericRepository<ErrorLogModel, int> errorLogModelRepo, 
+            IDapperRepository<SubsidryDeActivateParams> dapperRepository, IGenericRepository<PeriodMaster, int> periodRepository)
         {
             _IHostingEnviroment = hostingEnvironment;
             _IInputVatDataFileRepository = inputVATDatFileRepository;
@@ -65,6 +67,8 @@ namespace STCAPI.Controllers.ExcelReader
             _IUserSubsidryUserMapping = userSubsidryMapping;
             _ISubsidryInvoiceAttachmentRepository = subsidryInvoiceAttachmentRepository;
             _IErrorLogRepository = errorLogModelRepo;
+            _ISubsidryDapperRepository = dapperRepository;
+            _IPeriodMasterRepository = periodRepository;
 
         }
 
@@ -102,12 +106,21 @@ namespace STCAPI.Controllers.ExcelReader
                 var returnFilePath = await new BlobHelper().UploadDocument(model.InvoiceReturnExcel, _IHostingEnviroment);
 
 
-                var companyDetail = await _IUserSubsidryUserMapping.GetAllEntities(x => x.IsActive && !x.IsDeleted);
-                var company = companyDetail.TEntities.ToList().Find(x => x.UserName.ToLower().Trim() == model.UserName.ToLower().Trim());
+                //var companyDetail = await _IUserSubsidryUserMapping.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+                //var company = companyDetail.TEntities.ToList().Find(x => x.UserName.ToLower().Trim() == model.UserName.ToLower().Trim());
+                #endregion
+
+                #region DeActivatePreviousData
+                _ISubsidryDapperRepository.Execute<object>(SqlQueryHelper.DeActivatePreviousSubsidry, new SubsidryDeActivateParams()
+                {
+                    in_companyName = model.Company,
+                    in_periodName = model.Period,
+                });
+
                 #endregion
 
                 var uploadInvoiceId = await CreateUploadInvocie(model, null, inputFilePath, outputFilePath,
-                    returnFilePath, trialFilePath, company?.CompanyName ?? String.Empty);
+                    returnFilePath, trialFilePath, model.Company);
 
                 await UploadSubsidryAttachment(model, inputAttachmentList, outPutAttachmentList, returnAttachmentList, trialAttachmentList, uploadInvoiceId);
 
@@ -118,9 +131,11 @@ namespace STCAPI.Controllers.ExcelReader
                 dbModels.ForEach(data =>
                 {
                     data.UploadInvoiceDetailId = uploadInvoiceId;
-                    data.CompanyName = company?.CompanyName ?? String.Empty;
+                    data.CompanyName = model.Company;
                     data.CreatedDate = DateTime.Now;
                     data.UpdatedDate = DateTime.Now;
+                    data.CreatedBy = model.UserName;
+                    data.Period = model.Period;
                 });
                 var inputDataFileResponse = await CreateInputVATDetail(dbModels, model.UserName);
 
@@ -133,9 +148,12 @@ namespace STCAPI.Controllers.ExcelReader
                 dtoModel.ForEach(data =>
                 {
                     data.UploadInvoiceDetailId = uploadInvoiceId;
-                    data.CompanyName = company?.CompanyName ?? String.Empty;
+                    data.CompanyName = model.Company;
                     data.CreatedDate = DateTime.Now;
                     data.UpdatedDate = DateTime.Now;
+                    data.CreatedBy= model.UserName;
+                    data.Period= model.Period;
+                    
                 });
                 var dbResponse = await CreateSTCOutputModel(dtoModel, model.UserName);
                 #endregion
@@ -162,8 +180,9 @@ namespace STCAPI.Controllers.ExcelReader
                             VATTypeId = Convert.ToDecimal(data.VATTypeId ?? "0"),
                             VATTypeName = data.VATTypeName ?? String.Empty,
                             CreatedDate = DateTime.Now,
-                            CompanyName = company?.CompanyName ?? String.Empty,
-                            UpdatedDate=DateTime.Now
+                            CompanyName = model.Company,
+                            UpdatedDate = DateTime.Now,
+                            Period=model.Period
                         });
                 });
 
@@ -178,9 +197,11 @@ namespace STCAPI.Controllers.ExcelReader
                 trialDBModels.ForEach(data =>
                 {
                     data.UploadInvoiceDetailId = uploadInvoiceId;
-                    data.CompanyName= company?.CompanyName ?? String.Empty;
+                    data.CompanyName = model.Company;
                     data.CreatedDate = DateTime.Now;
                     data.UpdatedDate = DateTime.Now;
+                    data.CreatedBy = model.UserName;
+                    data.Period = model.Period;
 
                 });
                 var trialDataResponse = await CreateTrialBalance(trialDBModels, model.UserName);
@@ -221,7 +242,14 @@ namespace STCAPI.Controllers.ExcelReader
         {
             try
             {
+                var periodDetails = await _IPeriodMasterRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
                 var response = await _IUploadInvoiceRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+                response.TEntities.ToList().ForEach(data =>
+                {
+                    data.PeriodName = periodDetails.TEntities.Where(x => x.IsDeleted == false && x.IsActive == true && x.PeriodDate == data.Period)
+                    .FirstOrDefault()?.Period?? String.Empty;
+                });
+
                 return Ok(response);
             }
             catch (Exception ex)
@@ -459,6 +487,12 @@ namespace STCAPI.Controllers.ExcelReader
 
         }
 
+        /// <summary>
+        /// Private Helper code for Subsidry Upload and Validation issue.
+        /// </summary>
+        /// <param name="inputFile"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
 
         #region PrivateMethod
 
@@ -1046,6 +1080,11 @@ namespace STCAPI.Controllers.ExcelReader
 
         }
 
+        /// <summary>
+        /// Remove this method after getting confirmation from client:
+        /// </summary>
+        /// <param name="fileData"></param>
+        /// <returns></returns>
         #region ObsoleteMethod
         private async Task<List<VATRetunDetailModel>> GetVATReturnDetail(IFormFile fileData)
         {

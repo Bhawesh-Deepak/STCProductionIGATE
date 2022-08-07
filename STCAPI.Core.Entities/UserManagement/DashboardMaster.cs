@@ -1,21 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace STCAPI.Core.Entities.UserManagement
 {
-	[Table("Dashboard")]
+    [Table("Dashboard")]
     public class DashboardMaster
     {
-		public int MainStreamId { get; set; }
-		public int StreamId { get; set; }
-		public string DashboardName { get; set; }
-		public string DashboardNumber { get; set; }
-		public string DashboardShortName { get; set; }
-		public string DashboardLongName { get; set; }
-		public string DashboardDescription { get; set; }
-	}
+        public int MainStreamId { get; set; }
+        public int StreamId { get; set; }
+        public string DashboardName { get; set; }
+        public string DashboardNumber { get; set; }
+        public string DashboardShortName { get; set; }
+        public string DashboardLongName { get; set; }
+        public string DashboardDescription { get; set; }
+    }
 }

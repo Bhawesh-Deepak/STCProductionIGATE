@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace STCAPI.Core.Entities.Configuration
 {
     [Table("configurationmastertype")]
-    public class ConfigurationMaster: BaseModel<int>
+    public class ConfigurationMaster : BaseModel<int>
     {
         public string MasterType { get; set; }
         public int StageId { get; set; }

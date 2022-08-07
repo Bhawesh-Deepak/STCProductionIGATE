@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
 
 namespace CommonHelper
 {
@@ -14,11 +14,12 @@ namespace CommonHelper
         {
             var guidId = Guid.NewGuid();
             List<string> _documentPaths = new List<string>();
-            if (document!=null && document.Any())
+            if (document != null && document.Any())
             {
-                document.ForEach(item => {
+                document.ForEach(item =>
+                {
                     var upload = Path.Combine(_hostingEnvironment.WebRootPath, "Files//");
-                    using (var fs = new FileStream(Path.Combine(upload, guidId.ToString()+"_"+item.FileName), FileMode.Create))
+                    using (var fs = new FileStream(Path.Combine(upload, guidId.ToString() + "_" + item.FileName), FileMode.Create))
                     {
                         item.CopyTo(fs);
                     }
@@ -32,7 +33,8 @@ namespace CommonHelper
 
         public async Task<string> UploadDocument(IFormFile document, IHostingEnvironment _hostingEnvironment)
         {
-            if (document != null && document.Length > 0 ) {
+            if (document != null && document.Length > 0)
+            {
                 var guidId = Guid.NewGuid();
                 var upload = Path.Combine(_hostingEnvironment.WebRootPath, "Files//");
                 using (var fs = new FileStream(Path.Combine(upload, guidId.ToString() + "_" + document.FileName), FileMode.Create))

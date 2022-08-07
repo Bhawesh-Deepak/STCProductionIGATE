@@ -1,12 +1,12 @@
-﻿using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using MailKit.Net.Smtp;
-using MimeKit;
-using System.Threading.Tasks;
-using System.IO;
+﻿using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using MimeKit;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace MailHelper
 {

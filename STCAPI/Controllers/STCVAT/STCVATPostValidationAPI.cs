@@ -1,6 +1,5 @@
 ﻿using MailHelper;
 using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using STAAPI.Infrastructure.Repository.GenericRepository;
 using STAAPI.Infrastructure.Repository.STCVATRepository;
@@ -11,7 +10,6 @@ using STCAPI.ErrorLogService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace STCAPI.Controllers.STCVAT
@@ -34,7 +32,7 @@ namespace STCAPI.Controllers.STCVAT
         /// <param name="sTCPOstValidationRepository"></param>
         /// <param name="notificationService"></param>
         /// <param name="errorLogRepository"></param>
-        public STCVATPostValidationAPI(ISTCPOstValidationRepository sTCPOstValidationRepository, 
+        public STCVATPostValidationAPI(ISTCPOstValidationRepository sTCPOstValidationRepository,
             INotificationService notificationService, IGenericRepository<ErrorLogModel, int> errorLogRepository)
         {
             _iSTCPOstValidationRepository = sTCPOstValidationRepository;
@@ -76,7 +74,7 @@ namespace STCAPI.Controllers.STCVAT
                 }
                 return Ok(response);
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(STCVATPostValidationAPI),
                     nameof(CreateForm), ex.Message, ex.ToString());
@@ -85,6 +83,6 @@ namespace STCAPI.Controllers.STCVAT
 
         }
 
-       
+
     }
 }
