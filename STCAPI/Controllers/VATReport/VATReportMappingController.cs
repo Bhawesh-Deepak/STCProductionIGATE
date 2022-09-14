@@ -78,6 +78,16 @@ namespace STCAPI.Controllers.VATReport
                 model.IsDeleted = false;
                 model.CreatedDate = DateTime.Now;
                 model.UpdatedDate = DateTime.Now;
+
+                if (model.ToDate != null)
+                {
+                    if (model.ToDate.Value.Date < DateTime.Now.Date)
+                    {
+                        model.IsActive = false;
+                        model.IsDeleted = true;
+                    }
+                }
+
                 var response = await _IVATReportMappingRepository.CreateEntity(new List<VATReportMapping>() { model }.ToArray());
                 return Ok(response);
             }
@@ -169,8 +179,21 @@ namespace STCAPI.Controllers.VATReport
         {
             try
             {
+                model.IsActive = true;
+                model.IsDeleted = false;
+                model.UpdatedDate = DateTime.Now;
+
                 if (model.Id > 0)
                 {
+                    if (model.ToDate != null)
+                    {
+                        if (model.ToDate.Value.Date < DateTime.Now.Date)
+                        {
+                            model.IsActive = false;
+                            model.IsDeleted = true;
+                        }
+                    }
+
                     var updateResponse = await _IVATReportMappingRepository.UpdateEntity(model);
                     return Ok(updateResponse);
                 }

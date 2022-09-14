@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using STAAPI.Infrastructure.Repository.GenericRepository;
 using STAAPI.Infrastructure.Repository.PortalAccessRepository;
+using STCAPI.Core.Entities.Common;
 using STCAPI.Core.Entities.Logger;
 using STCAPI.Core.Entities.UserManagement;
 using STCAPI.ErrorLogService;
@@ -56,13 +57,14 @@ namespace STCAPI.Controllers.UserManagement
         /// <returns></returns>
 
         [HttpPost]
+        [Produces("application/json")]
         public async Task<IActionResult> CreatePortalMenu([FromForm] PortalMenuMaster formFile)
         {
             try
             {
                 var models = await GetPortalMenuList(formFile.PortalFile);
                 var response = await _IPortalMenuRepository.CreateEntity(models.ToArray());
-                return Ok(response.ResponseStatus);
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -96,7 +98,7 @@ namespace STCAPI.Controllers.UserManagement
                     {
                         if (data.Id == item.PortalId)
                         {
-                            data.Flag = 1;
+                            data.IsMapped = item.IsMapped;
                         }
                     });
 
@@ -114,12 +116,68 @@ namespace STCAPI.Controllers.UserManagement
             }
         }
 
+
+
+        /// <summary>
+        /// Get User Access Details
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetAccessRight(string userName, bool isMapped)
+        {
+            try
+            {
+                var objectMappingDetails = await _IObjectMappingRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+
+                var userAccessPortalModels = await _IPortalAccessRepository.
+                    GetAllEntities(x => x.IsActive && !x.IsDeleted && x.UserName == userName && x.IsMapped);
+    
+                var response = (from pa in userAccessPortalModels.TEntities
+                                join om in objectMappingDetails.TEntities
+                                on pa.PortalId equals om.Id
+                                select new ObjectMapping
+                                {
+                                    Stage = om.Stage,
+                                    MainStream = om.MainStream,
+                                    Stream = om.Stream,
+                                    Object = om.Object,
+                                    Name = om.Name,
+                                    ShortName = om.ShortName,
+                                    LongName = om.LongName,
+                                    Description = om.Description,
+                                    ObjectNumber = om.ObjectNumber,
+                                    ObjectReference = om.ObjectReference,
+                                    IsMapped = pa.IsMapped
+
+                                }).ToList();
+
+                return Ok(new ResponseModel<ObjectMapping, int>()
+                {
+                    Entity = null,
+                    Message = "success",
+                    ResponseStatus = ResponseStatus.Success,
+                    TEntities = response
+                });
+            }
+            catch (Exception ex)
+            {
+
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(PortalMenuMasterAPI),
+                                 nameof(GetUserAccess), ex.Message, ex.ToString());
+
+                return BadRequest("Something wents wrong, Please contact admin Team !");
+            }
+        }
+
         /// <summary>
         /// Create User Detail Access
         /// </summary>
         /// <param name="portalAccesses"></param>
         /// <returns></returns>
         [HttpPost]
+        [Produces("application/json")]
         public async Task<IActionResult> CreateUserRight(List<PortalAccess> portalAccesses)
         {
             try
@@ -130,6 +188,7 @@ namespace STCAPI.Controllers.UserManagement
                     data.CreatedDate = DateTime.Now;
                     data.IsActive = true;
                     data.IsDeleted = false;
+                    data.UpdatedDate = DateTime.Now;
                 });
 
                 var deleteModel = await _IPortalAccessRepository.GetAllEntities(x => x.UserName.ToUpper().Trim() ==
@@ -145,7 +204,7 @@ namespace STCAPI.Controllers.UserManagement
 
                 var response = await _IPortalAccessRepository.CreateEntity(portalAccesses.ToArray());
 
-                return Ok(response.Message);
+                return Ok(response);
             }
             catch (Exception ex)
             {

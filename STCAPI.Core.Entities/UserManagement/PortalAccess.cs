@@ -8,5 +8,6 @@ namespace STCAPI.Core.Entities.UserManagement
     {
         public int PortalId { get; set; }
         public string UserName { get; set; }
+        public bool IsMapped { get; set; }
     }
 }

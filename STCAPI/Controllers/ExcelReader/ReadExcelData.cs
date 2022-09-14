@@ -652,9 +652,9 @@ namespace STCAPI.Controllers.ExcelReader
                             model.PoDate = Convert.ToString(inputVatInvoiceDetail.Rows[i][26]);
                             model.ReleaseDate = Convert.ToString(inputVatInvoiceDetail.Rows[i][27] ?? DateTime.Now.AddYears(100));
                             model.ReceiptNumber = Convert.ToString(inputVatInvoiceDetail.Rows[i][28]);
-                            model.PoItemNumber = Convert.ToString(inputVatInvoiceDetail.Rows[i][29]);
-                            model.PoItemDescription = Convert.ToString(inputVatInvoiceDetail.Rows[i][30]);
-                            model.InvoiceSource = Convert.ToString(inputVatInvoiceDetail.Rows[i][31]);
+                            model.ReceiptDate = Convert.ToString(inputVatInvoiceDetail.Rows[i][29]);
+                            model.PoItemNumber = Convert.ToString(inputVatInvoiceDetail.Rows[i][30]);
+                            model.PoItemDescription = Convert.ToString(inputVatInvoiceDetail.Rows[i][31]);
                             model.Quantity = Convert.ToString(inputVatInvoiceDetail.Rows[i][32]);
                             model.UnitPrice = Convert.ToString(inputVatInvoiceDetail.Rows[i][33]);
                             model.DiscountAmount = Convert.ToString(inputVatInvoiceDetail.Rows[i][34]);
@@ -675,6 +675,7 @@ namespace STCAPI.Controllers.ExcelReader
                             model.SARRecoverableTaxableAmount = Convert.ToString(inputVatInvoiceDetail.Rows[i][48]);
                             model.NonRecoverableTaxAmount = Convert.ToString(inputVatInvoiceDetail.Rows[i][49]);
                             model.SARNonRecoverableTaxAmount = Convert.ToString(inputVatInvoiceDetail.Rows[i][50]);
+                            model.RecoverableTaxGLAccountNumber = Convert.ToString(inputVatInvoiceDetail.Rows[i][51]);
                             models.Add(model);
                         }
                     }
@@ -1028,7 +1029,7 @@ namespace STCAPI.Controllers.ExcelReader
                     dtoModel.TaxRateName = item.TaxRateName.GetDefaultIfStringNull<string>();
                     dtoModel.TaxableAmount = item.TaxableAmount.GetDefaultIfStringNull<decimal>();
 
-                    dtoModel.SARTaxAmount = item.SARTaxAmount.GetDefaultIfStringNull<decimal>();
+                    dtoModel.SARTaxableAmount = item.SARTaxableAmount.GetDefaultIfStringNull<decimal>();
                     dtoModel.TaxAmount = item.TaxAmount.GetDefaultIfStringNull<decimal>();
                     dtoModel.SARTaxAmount = item.SARTaxAmount.GetDefaultIfStringNull<decimal>();
                     dtoModel.TaxClassificationCode = item.TaxClassificationCode.GetDefaultIfStringNull<string>();

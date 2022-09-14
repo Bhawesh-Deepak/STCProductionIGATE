@@ -277,16 +277,20 @@ namespace STCAPI.Controllers.UserManagement
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="userName"></param>
+        /// <param name="userId"></param>
         /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
         [Consumes("application/json")]
-        public async Task<IActionResult> GetCompanyDetailByUserName(string userName)
+        public async Task<IActionResult> GetCompanyDetailByUserName(string userId)
         {
-            var response = await _ISubsidryUserMapping.GetAllEntities(x => x.UserName.Trim().ToLower() == userName.Trim().ToLower()
+
+            var response = await _ISubsidryUserMapping.GetAllEntities(x => x.UserId.Trim().ToLower() 
+                        == userId.Trim().ToLower()
                  && x.IsActive && !x.IsDeleted
             );
+
+
             return Ok(response);
         }
     }

@@ -59,5 +59,6 @@ namespace STCAPI.Core.Entities.VATDetailUpload
         public int UploadInvoiceDetailId { get; set; }
         public string CompanyName { get; set; }
         public DateTime Period { get; set; }
+        public decimal SARTaxableAmount { get; set; }
     }
 }

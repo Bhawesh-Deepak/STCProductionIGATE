@@ -1,4 +1,6 @@
-﻿namespace STCAPI.Model
+﻿using System;
+
+namespace STCAPI.Model
 {
     public class UpdateFormModel
     {
@@ -8,5 +10,6 @@
         public string ApproverEmail { get; set; }
         public string PendingwithEmail { get; set; }
         public string RequestStatus { get; set; }
+        public DateTime SentDate { get; set; }
     }
 }

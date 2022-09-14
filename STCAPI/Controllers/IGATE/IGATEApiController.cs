@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using STAAPI.Infrastructure.Repository.GenericRepository;
 using STCAPI.Core.Entities.IGATE;
@@ -27,6 +28,7 @@ namespace STCAPI.Controllers.IGATE
     {
         private readonly IGenericRepository<VATRequestUpdate, int> _IVATRequestUpdateRepo;
         private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
+        private readonly IConfiguration _IConfiguration;
 
 
         /// <summary>
@@ -34,10 +36,11 @@ namespace STCAPI.Controllers.IGATE
         /// </summary>
         /// <param name="vatRequestUpdateRepo"></param>
         public IGATEApiController(IGenericRepository<VATRequestUpdate, int> vatRequestUpdateRepo,
-            IGenericRepository<ErrorLogModel, int> errorLogRepository)
+            IGenericRepository<ErrorLogModel, int> errorLogRepository, IConfiguration configuration)
         {
             _IVATRequestUpdateRepo = vatRequestUpdateRepo;
             _IErrorLogRepository = errorLogRepository;
+            _IConfiguration = configuration;
         }
         /// <summary>
         /// Authenticate Response From IGATE API
@@ -64,7 +67,7 @@ namespace STCAPI.Controllers.IGATE
         {
             try
             {
-                using HttpClient client = new HttpClient { BaseAddress = new Uri("https://10.21.132.47:9016/gateway/") };
+                using HttpClient client = new HttpClient { BaseAddress = new Uri(_IConfiguration.GetSection("IGATE:baseUrl").Value) };
                 var stringContent = new StringContent(JsonConvert.SerializeObject(GetAuthModel()), Encoding.UTF8, "application/json");
                 var response = await client.PostAsync("stcOeOAuthConnection/1.0/accessToken", stringContent);
                 if (response.IsSuccessStatusCode)
@@ -111,7 +114,7 @@ namespace STCAPI.Controllers.IGATE
         {
             try
             {
-                using HttpClient client = new HttpClient { BaseAddress = new Uri("https://10.21.132.47:9016/gateway/") };
+                using HttpClient client = new HttpClient { BaseAddress = new Uri(_IConfiguration.GetSection("IGATE:baseUrl").Value) };
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 var stringContent = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
                 var response = await client.PostAsync("stcOeEsbVATServices/1.0/vat/en/initiate", stringContent);
@@ -215,7 +218,7 @@ namespace STCAPI.Controllers.IGATE
                     model.ApproverEmail = data.ApproverEmail;
                     model.PendingwithEmail = data.PendingwithEmail;
                     model.RequestStatus = data.RequestStatus;
-
+                    model.SentDate= data.CreatedDate;
                     models.Add(model);
                 });
                 return Ok(models);
@@ -240,9 +243,12 @@ namespace STCAPI.Controllers.IGATE
         {
             return new AuthenticationModel()
             {
-                client_id = "3a1bc4a8-e01a-4b57-bb2b-3ead05057c2e",
-                client_secret = "fbe24031-ecff-411b-b123-b37148de5543",
-                grant_type = "client_credentials"
+                //client_id = "3a1bc4a8-e01a-4b57-bb2b-3ead05057c2e",
+                //client_secret = "fbe24031-ecff-411b-b123-b37148de5543",
+                //grant_type = "client_credentials"
+                client_id= _IConfiguration.GetSection("IGATE:client_id").Value,
+                client_secret= _IConfiguration.GetSection("IGATE:client_sceretKey").Value,
+                grant_type= _IConfiguration.GetSection("IGATE:grant_type").Value
             };
         }
 

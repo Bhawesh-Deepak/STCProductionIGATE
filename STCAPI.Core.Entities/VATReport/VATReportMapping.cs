@@ -13,7 +13,8 @@ namespace STCAPI.Core.Entities.VATReport
         public string TaxCode { get; set; }
         public decimal TaxCodeRate { get; set; }
         public DateTime FromDate { get; set; }
-        public DateTime ToDate { get; set; }
+        public DateTime? ToDate { get; set; }
         public string Description { get; set; }
+        public string STCVATReportItemNumber { get; set; }
     }
 }

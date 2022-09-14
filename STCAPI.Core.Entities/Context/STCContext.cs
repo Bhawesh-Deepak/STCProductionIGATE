@@ -64,7 +64,6 @@ namespace STCAPI.Core.Entities.Context
         public virtual DbSet<ConfigurationMaster> ConfigurationMasters { get; set; }
         public virtual DbSet<MainStreamMaster> MainStreamMasters { get; set; }
         public virtual DbSet<QlikDataAccess> QlikDataAccesses { get; set; }
-
         public virtual DbSet<SubsidryModel> SubsidryModels { get; set; }
         public virtual DbSet<SubsidryUserMapping> SubsidryUserMappings { get; set; }
         public virtual DbSet<SourceMaster> SourceMasters { get; set; }
@@ -81,5 +80,9 @@ namespace STCAPI.Core.Entities.Context
         public virtual DbSet<ErrorLogModel> ErrorLogModels { get; set; }
         public virtual DbSet<VATReportMapping> VATReportMappings { get; set; }
         public virtual DbSet<PeriodMaster> PeriodMasters { get; set; }
+        public virtual DbSet<AdminAccess> AdminAccesses { get; set; }
+        public virtual DbSet<IGATERequestDetails> IGATERequestDetails { get; set; }
+
+        public virtual DbSet<STCVATReportItem> STCVATReportItems { get; set; }
     }
 }

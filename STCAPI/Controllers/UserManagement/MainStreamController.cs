@@ -140,6 +140,7 @@ namespace STCAPI.Controllers.UserManagement
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet]
+        [Produces("application/json")]
         public async Task<IActionResult> DeleteMainStream(int id)
         {
             try
