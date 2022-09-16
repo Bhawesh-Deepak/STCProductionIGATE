@@ -54,7 +54,7 @@ namespace STCAPI.Controllers.ExcelReader
             IGenericRepository<UploadInvoiceDetail, int> uploadInvoiceRepo,
             ILogger<ReadExcelData> logger, IGenericRepository<SubsidryUserMapping, int> userSubsidryMapping,
             IGenericRepository<SubsidryInvoiceAttachment, int> subsidryInvoiceAttachmentRepository,
-            IGenericRepository<ErrorLogModel, int> errorLogModelRepo, 
+            IGenericRepository<ErrorLogModel, int> errorLogModelRepo,
             IDapperRepository<SubsidryDeActivateParams> dapperRepository, IGenericRepository<PeriodMaster, int> periodRepository)
         {
             _IHostingEnviroment = hostingEnvironment;
@@ -151,9 +151,9 @@ namespace STCAPI.Controllers.ExcelReader
                     data.CompanyName = model.Company;
                     data.CreatedDate = DateTime.Now;
                     data.UpdatedDate = DateTime.Now;
-                    data.CreatedBy= model.UserName;
-                    data.Period= model.Period;
-                    
+                    data.CreatedBy = model.UserName;
+                    data.Period = model.Period;
+
                 });
                 var dbResponse = await CreateSTCOutputModel(dtoModel, model.UserName);
                 #endregion
@@ -182,7 +182,7 @@ namespace STCAPI.Controllers.ExcelReader
                             CreatedDate = DateTime.Now,
                             CompanyName = model.Company,
                             UpdatedDate = DateTime.Now,
-                            Period=model.Period
+                            Period = model.Period
                         });
                 });
 
@@ -238,19 +238,35 @@ namespace STCAPI.Controllers.ExcelReader
         /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
-        public async Task<IActionResult> GetExcelArchiveDetails()
+        public async Task<IActionResult> GetExcelArchiveDetails(string userName)
         {
             try
             {
-                var periodDetails = await _IPeriodMasterRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
-                var response = await _IUploadInvoiceRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
-                response.TEntities.ToList().ForEach(data =>
+                if (string.IsNullOrEmpty(userName))
                 {
-                    data.PeriodName = periodDetails.TEntities.Where(x => x.IsDeleted == false && x.IsActive == true && x.PeriodDate == data.Period)
-                    .FirstOrDefault()?.Period?? String.Empty;
-                });
+                    var periodDetails = await _IPeriodMasterRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+                    var response = await _IUploadInvoiceRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+                    response.TEntities.ToList().ForEach(data =>
+                    {
+                        data.PeriodName = periodDetails.TEntities.Where(x => x.IsDeleted == false && x.IsActive == true && x.PeriodDate == data.Period)
+                        .FirstOrDefault()?.Period ?? String.Empty;
+                    });
 
-                return Ok(response);
+                    return Ok(response);
+                }
+                else {
+
+                    var periodDetails = await _IPeriodMasterRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+                    var response = await _IUploadInvoiceRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted && x.CreatedBy.Trim().ToLower()==userName.Trim().ToLower());
+                    response.TEntities.ToList().ForEach(data =>
+                    {
+                        data.PeriodName = periodDetails.TEntities.Where(x => x.IsDeleted == false && x.IsActive == true && x.PeriodDate == data.Period)
+                        .FirstOrDefault()?.Period ?? String.Empty;
+                    });
+
+                    return Ok(response);
+                }
+
             }
             catch (Exception ex)
             {
