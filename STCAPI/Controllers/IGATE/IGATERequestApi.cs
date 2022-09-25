@@ -197,5 +197,36 @@ namespace STCAPI.Controllers.IGATE
             }
 
         }
+
+        [HttpGet]
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        public async Task<IActionResult> CheckFormIdExists(string formId) 
+        {
+            try
+            {
+                var response = await _IVATRequestUpdateRepo.GetAllEntities(x => x.IsActive && !x.IsDeleted
+                            && x.FormId.Trim().ToLower() == formId.Trim().ToLower());
+
+                var responseModel = response.TEntities.OrderByDescending(x => x.CreatedDate).FirstOrDefault();
+
+
+                return Ok(new ResponseModel<VATRequestUpdate, int>()
+                {
+                    TEntities = null,
+                    Entity = responseModel,
+                    Message = "Sucess",
+                    ResponseStatus = ResponseStatus.Success
+                });
+            }
+            catch (Exception ex)
+            {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(IGATERequestApi),
+              nameof(CheckFormIdExists), ex.Message, ex.ToString());
+                return BadRequest("Something wents wrong.");
+            }
+
+
+        }
     }
 }
