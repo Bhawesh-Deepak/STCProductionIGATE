@@ -5,6 +5,7 @@ using STAAPI.Infrastructure.Repository.GenericRepository;
 using STCAPI.Core.Entities.Common;
 using STCAPI.Core.Entities.IGATE;
 using STCAPI.Core.Entities.Logger;
+using STCAPI.Core.ViewModel.ResponseModel;
 using STCAPI.ErrorLogService;
 using STCAPI.Model;
 using System;
@@ -25,6 +26,7 @@ namespace STCAPI.Controllers.IGATE
     {
         private readonly IGenericRepository<IGATERequestDetails, int> _IGateRequestRepository;
         private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
+        private readonly IGenericRepository<VATRequestUpdate, int> _IVATRequestUpdateRepo;
 
         /// <summary>
         /// Inject required service to constructor class.
@@ -32,10 +34,12 @@ namespace STCAPI.Controllers.IGATE
         /// <param name="iGateRequestRepository"></param>
         /// <param name="iErrorLogRepository"></param>
         public IGATERequestApi(IGenericRepository<IGATERequestDetails, int> iGateRequestRepository,
-            IGenericRepository<ErrorLogModel, int> iErrorLogRepository)
+            IGenericRepository<ErrorLogModel, int> iErrorLogRepository,
+            IGenericRepository<VATRequestUpdate, int> iVATRequestUpdateRepo)
         {
             _IGateRequestRepository = iGateRequestRepository;
             _IErrorLogRepository = iErrorLogRepository;
+            _IVATRequestUpdateRepo = iVATRequestUpdateRepo;
         }
 
         /// <summary>
@@ -119,6 +123,76 @@ namespace STCAPI.Controllers.IGATE
             catch (Exception ex) {
                 await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(IGATERequestApi),
                  nameof(PostIGATERequestDetail), ex.Message, ex.ToString());
+                return BadRequest("Something wents wrong.");
+            }
+
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetIGATERequestResponse() 
+        {
+            try
+            {
+                var responseModels = new List<IGATEResponseModel>();
+                var response = (await _IGateRequestRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted));
+                var model = new RequestModel();
+
+                var requestModels = await _IVATRequestUpdateRepo.GetAllEntities(x => x.IsActive && !x.IsDeleted);
+
+                var filteredRequestDetails = requestModels.TEntities.OrderByDescending(x => x.CreatedDate);
+
+                if (response != null && response.TEntities.Any())
+                {
+                    foreach (var data in response.TEntities)
+                    {
+                        var responseModel = new IGATEResponseModel();
+                        responseModel.FormId = data.FormId;
+                        model = JsonConvert.DeserializeObject<RequestModel>(data.RequestText);
+                        responseModel.Month = model.bpmRequest.request.details[0].value;
+                        responseModel.Year = model.bpmRequest.request.details[1].value;
+                        responseModel.VATOnSale = model.bpmRequest.request.details[2].value;
+                        responseModel.VATOnPurchase = model.bpmRequest.request.details[3].value;
+                        responseModel.VATReturnDetails = model.bpmRequest.request.details[4].value;
+                        responseModel.Comments = model.bpmRequest.request.details[5].value;
+                        responseModel.OtherVAT = model.bpmRequest.request.details[6].value;
+
+                        if (filteredRequestDetails.Any(x => x.FormId == data.FormId))
+                        {
+
+                            responseModel.Decision = filteredRequestDetails.First(x => x.FormId == data.FormId).Decision;
+                            responseModel.CurrentStatus = filteredRequestDetails.First(x => x.FormId == data.FormId).RequestStatus;
+                            responseModel.Email = filteredRequestDetails.First(x => x.FormId == data.FormId).ApproverEmail;
+                            responseModel.CreatedDate = filteredRequestDetails.First(x => x.FormId == data.FormId).CreatedDate;
+
+                            responseModels.Add(responseModel);
+                        }
+                    }
+                }
+
+                var uniqueRecords = from p in responseModels
+                                    group p by new { p.FormId }
+                                     into mygroup
+                                    select mygroup.FirstOrDefault();
+
+
+                return Ok(uniqueRecords);
+
+                //return Ok(new ResponseModel<IGATEResponseModel, int>()
+                //{
+                //    TEntities = uniqueRecords.ToList(),
+                //    Entity = null,
+                //    Message = "Sucess",
+                //    ResponseStatus = ResponseStatus.Success
+                //});
+            }
+            catch (Exception ex)
+            {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(IGATERequestApi),
+                  nameof(GetIGATERequestResponse), ex.Message, ex.ToString());
                 return BadRequest("Something wents wrong.");
             }
 

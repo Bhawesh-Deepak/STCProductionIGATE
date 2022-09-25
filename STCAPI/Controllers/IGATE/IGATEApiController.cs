@@ -29,6 +29,7 @@ namespace STCAPI.Controllers.IGATE
         private readonly IGenericRepository<VATRequestUpdate, int> _IVATRequestUpdateRepo;
         private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
         private readonly IConfiguration _IConfiguration;
+        private readonly IGenericRepository<IGATERequestDetails, int> _IGateRequestRepository;
 
 
         /// <summary>
@@ -36,11 +37,12 @@ namespace STCAPI.Controllers.IGATE
         /// </summary>
         /// <param name="vatRequestUpdateRepo"></param>
         public IGATEApiController(IGenericRepository<VATRequestUpdate, int> vatRequestUpdateRepo,
-            IGenericRepository<ErrorLogModel, int> errorLogRepository, IConfiguration configuration)
+            IGenericRepository<ErrorLogModel, int> errorLogRepository, IConfiguration configuration, IGenericRepository<IGATERequestDetails, int> iGateRequestRepository)
         {
             _IVATRequestUpdateRepo = vatRequestUpdateRepo;
             _IErrorLogRepository = errorLogRepository;
             _IConfiguration = configuration;
+            _IGateRequestRepository = iGateRequestRepository;
         }
         /// <summary>
         /// Authenticate Response From IGATE API
