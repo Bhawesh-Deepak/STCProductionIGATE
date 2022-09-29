@@ -132,7 +132,7 @@ namespace STCAPI.Controllers.UserManagement
                 var objectMappingDetails = await _IObjectMappingRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted);
 
                 var userAccessPortalModels = await _IPortalAccessRepository.
-                    GetAllEntities(x => x.IsActive && !x.IsDeleted && x.UserName == userName && x.IsMapped);
+                    GetAllEntities(x => x.IsActive && !x.IsDeleted && x.UserName.Trim().ToLower() == userName.Trim().ToLower() && x.IsMapped);
     
                 var response = (from pa in userAccessPortalModels.TEntities
                                 join om in objectMappingDetails.TEntities
