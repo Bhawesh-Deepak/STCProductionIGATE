@@ -62,5 +62,9 @@ namespace STCAPI.Core.Entities.VATDetailUpload
         public int UploadInvoiceDetailId { get; set; }
         public string CompanyName { get; set; }
         public DateTime Period { get; set; }
+        public string BuyerName { get; set; }
+        public string BuyerAddress { get; set; }
+        public string BuyerVATRegistrationNumber { get; set; }
+        public string BuyerVATGroupRegistrationNumber { get; set; }
     }
 }

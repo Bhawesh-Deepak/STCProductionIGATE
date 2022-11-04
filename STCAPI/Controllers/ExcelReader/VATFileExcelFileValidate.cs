@@ -166,6 +166,10 @@ namespace STCAPI.Controllers.ExcelReader
                             model.NonRecoverableTaxAmount = Convert.ToString(inputVatInvoiceDetail.Rows[i][49]);
                             model.SARNonRecoverableTaxAmount = Convert.ToString(inputVatInvoiceDetail.Rows[i][50]);
                             model.RecoverableTaxGLAccountNumber = Convert.ToString(inputVatInvoiceDetail.Rows[i][51]);
+                            model.BuyerName = Convert.ToString(inputVatInvoiceDetail.Rows[i][52]);
+                            model.BuyerAddress = Convert.ToString(inputVatInvoiceDetail.Rows[i][53]);
+                            model.BuyerVATRegistrationNumber= Convert.ToString(inputVatInvoiceDetail.Rows[i][54]);
+                            model.BuyerVATGroupRegistrationNumber = Convert.ToString(inputVatInvoiceDetail.Rows[i][55]);
                             models.Add(model);
                         }
                     }

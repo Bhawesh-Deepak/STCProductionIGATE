@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
 
 namespace STCAPI.Model
 {
@@ -23,5 +24,13 @@ namespace STCAPI.Model
         public string requesterEmail { get; set; }
         public string serviceCode { get; set; }
         public Request request { get; set; }
+        public List<Attachment> attachments { get; set; }
+    }
+
+    public class Attachment
+    {
+        public string fileName { get; set; }
+        public string mimeType { get; set; }
+        public string fileContents { get; set; }
     }
 }

@@ -99,7 +99,7 @@ namespace STCAPI.Controllers.IGATE
 
         [HttpGet]
         [Produces("application/json")]
-       
+
         public async Task<IActionResult> GetIGATERequestDetails([FromHeader] string FormId)
         {
             try
@@ -120,7 +120,8 @@ namespace STCAPI.Controllers.IGATE
                     ResponseStatus = ResponseStatus.Success
                 });
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(IGATERequestApi),
                  nameof(PostIGATERequestDetail), ex.Message, ex.ToString());
                 return BadRequest("Something wents wrong.");
@@ -133,7 +134,7 @@ namespace STCAPI.Controllers.IGATE
         /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
-        public async Task<IActionResult> GetIGATERequestResponse() 
+        public async Task<IActionResult> GetIGATERequestResponse()
         {
             try
             {
@@ -206,28 +207,61 @@ namespace STCAPI.Controllers.IGATE
         [HttpGet]
         [Produces("application/json")]
         [Consumes("application/json")]
-        public async Task<IActionResult> CheckFormIdExists(string formId) 
+        public async Task<IActionResult> CheckFormIdExists(string monthName, string yearName)
         {
             try
             {
-                var response = await _IVATRequestUpdateRepo.GetAllEntities(x => x.IsActive && !x.IsDeleted
-                            && x.FormId.Trim().ToLower() == formId.Trim().ToLower());
+                //var response = await _IVATRequestUpdateRepo.GetAllEntities(x => x.IsActive && !x.IsDeleted
+                //            && x.FormId.Trim().ToLower() == formId.Trim().ToLower());
 
-                var responseModel = response.TEntities.OrderByDescending(x => x.CreatedDate).FirstOrDefault();
+                //var responseModel = response.TEntities.OrderByDescending(x => x.CreatedDate).FirstOrDefault();
 
 
-                return Ok(new ResponseModel<VATRequestUpdate, int>()
+                //return Ok(new ResponseModel<VATRequestUpdate, int>()
+                //{
+                //    TEntities = null,
+                //    Entity = responseModel,
+                //    Message = "Sucess",
+                //    ResponseStatus = ResponseStatus.Success
+                //});
+
+                var response = (await _IGateRequestRepository.GetAllEntities(x => x.IsActive && !x.IsDeleted));
+                var model = new RequestModel();
+                var responseModels = new List<IGATEResponseModel>();
+                if (response != null && response.TEntities.Any())
                 {
-                    TEntities = null,
-                    Entity = responseModel,
-                    Message = "Sucess",
-                    ResponseStatus = ResponseStatus.Success
+                    foreach (var data in response.TEntities)
+                    {
+                        var responseModel = new IGATEResponseModel();
+                        responseModel.FormId = data.FormId;
+                        model = JsonConvert.DeserializeObject<RequestModel>(data.RequestText);
+                        responseModel.Month = model.bpmRequest.request.details[0].value;
+                        responseModel.Year = model.bpmRequest.request.details[1].value;
+                        responseModel.VATOnSale = model.bpmRequest.request.details[2].value;
+                        responseModel.VATOnPurchase = model.bpmRequest.request.details[3].value;
+                        responseModel.VATReturnDetails = model.bpmRequest.request.details[4].value;
+                        responseModel.Comments = model.bpmRequest.request.details[5].value;
+                        responseModel.OtherVAT = model.bpmRequest.request.details[6].value;
+                        responseModels.Add(responseModel);
+                    }
+                }
+
+                var isExists = false;
+
+                responseModels.ForEach(data =>
+                {
+                    if (data.Month.Trim().ToLower() == monthName.Trim().ToLower() && data.Year.ToLower().Trim() == yearName.Trim().ToLower())
+                    {
+                        isExists = true;
+                    }
                 });
+
+                return Ok(isExists);
             }
             catch (Exception ex)
             {
                 await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(IGATERequestApi),
-              nameof(CheckFormIdExists), ex.Message, ex.ToString());
+                     nameof(CheckFormIdExists), ex.Message, ex.ToString());
                 return BadRequest("Something wents wrong.");
             }
 

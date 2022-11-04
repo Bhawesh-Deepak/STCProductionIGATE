@@ -53,5 +53,8 @@
         public string PreviousInvoiceNoteHash { get; set; }
         public string InvoiceTamperResistantCounterValue { get; set; }
         public string SellerName { get; set; }
+        public string CustomerVATGroupRegistrationNumber { get; set; }
+        public string CustomerType { get; set; }
+        public string ProductServiceGoodType { get; set; }
     }
 }

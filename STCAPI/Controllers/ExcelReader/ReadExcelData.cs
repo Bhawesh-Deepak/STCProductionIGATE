@@ -790,6 +790,7 @@ namespace STCAPI.Controllers.ExcelReader
                             model.QRCode = Convert.ToString(inputVatInvoiceDetail.Rows[i][47]);
                             model.PreviousInvoiceNoteHash = Convert.ToString(inputVatInvoiceDetail.Rows[i][48]);
                             model.InvoiceTamperResistantCounterValue = Convert.ToString(inputVatInvoiceDetail.Rows[i][49]);
+                            
                             models.Add(model);
                         }
                     }
@@ -915,6 +916,10 @@ namespace STCAPI.Controllers.ExcelReader
                     dbModel.NonRecoverableTaxAmount = item.NonRecoverableTaxAmount.GetDefaultIfStringNull<decimal>();
                     dbModel.SARNonRecoverableTaxAmount = item.SARNonRecoverableTaxAmount.GetDefaultIfStringNull<decimal>();
                     dbModel.RecoverableTaxGLAccountNumber = item.RecoverableTaxGLAccountNumber;
+                    dbModel.BuyerName= item.BuyerName;
+                    dbModel.BuyerAddress = item.BuyerAddress;
+                    dbModel.BuyerVATGroupRegistrationNumber = item.BuyerVATGroupRegistrationNumber;
+                    dbModel.BuyerVATRegistrationNumber = item.BuyerVATRegistrationNumber;
 
                     dbModels.Add(dbModel);
                 };
@@ -1064,6 +1069,9 @@ namespace STCAPI.Controllers.ExcelReader
                     dtoModel.QRCode = item.QRCode.GetDefaultIfStringNull<string>();
                     dtoModel.PreviousInvoiceNoteHash = item.PreviousInvoiceNoteHash.GetDefaultIfStringNull<string>();
                     dtoModel.InvoiceTamperResistantCounterValue = item.InvoiceTamperResistantCounterValue.GetDefaultIfStringNull<string>();
+                    dtoModel.CustomerVATGroupRegistrationNumber = item.CustomerVATGroupRegistrationNumber.GetDefaultIfStringNull<string>();
+                    dtoModel.CustomerType = item.CustomerType.GetDefaultIfStringNull<string>();
+                    dtoModel.ProductServiceGoodType= item.ProductServiceGoodType.GetDefaultIfStringNull<string>();
 
 
                     dtoModels.Add(dtoModel);

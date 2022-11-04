@@ -54,5 +54,9 @@
         public string NonRecoverableTaxAmount { get; set; }
         public string SARNonRecoverableTaxAmount { get; set; }
         public string RecoverableTaxGLAccountNumber { get; set; }
+        public string BuyerName { get; set; }
+        public string BuyerAddress { get; set; }
+        public string BuyerVATRegistrationNumber { get; set; }
+        public string BuyerVATGroupRegistrationNumber { get; set; }
     }
 }

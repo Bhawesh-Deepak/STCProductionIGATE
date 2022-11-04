@@ -45,8 +45,8 @@ namespace CommonHelper
                 if (string.IsNullOrEmpty(data.SupplierName))
                     errorResult.Add(count++, ("SupplierName", $"SupplierName is mandatory"));
 
-                if (string.IsNullOrEmpty(data.SupplierSite))
-                    errorResult.Add(count++, ("SupplierSite", $"SupplierSite is mandatory"));
+                //if (string.IsNullOrEmpty(data.SupplierSite))
+                //    errorResult.Add(count++, ("SupplierSite", $"SupplierSite is mandatory"));
 
                 if (string.IsNullOrEmpty(data.SupplierAddress))
                     errorResult.Add(count++, ("SupplierAddress", $"SupplierAddress is mandatory"));
@@ -57,17 +57,17 @@ namespace CommonHelper
                 if (string.IsNullOrEmpty(data.SupplierCountry))
                     errorResult.Add(count++, ("SupplierCountry", $"SupplierCountry is mandatory"));
 
-                if (string.IsNullOrEmpty(data.SupplierBankAccount) && data.PaymentMethod.Trim().ToLower() == "transfer")
-                    errorResult.Add(count++, ("SupplierBankAccount", $"SupplierBankAccount is mandatory"));
+                //if (string.IsNullOrEmpty(data.SupplierBankAccount) && data.PaymentMethod.Trim().ToLower() == "transfer")
+                //    errorResult.Add(count++, ("SupplierBankAccount", $"SupplierBankAccount is mandatory"));
 
                 if (string.IsNullOrEmpty(data.SupplierVATRegistrationNumber))
                     errorResult.Add(count++, ("SupplierVATRegistrationNumber", $"SupplierVATRegistrationNumber is mandatory"));
 
-                if (string.IsNullOrEmpty(data.PaymentMethod) && data.InvoiceType == "VAT-E Invoice")
-                    errorResult.Add(count++, ("PaymentMethod", $"PaymentMethod is mandatory"));
+                //if (string.IsNullOrEmpty(data.PaymentMethod) && data.InvoiceType == "VAT-E Invoice")
+                //    errorResult.Add(count++, ("PaymentMethod", $"PaymentMethod is mandatory"));
 
-                if (string.IsNullOrEmpty(data.PaymentTerm))
-                    errorResult.Add(count++, ("PaymentTerm", $"PaymentTerm is mandatory"));
+                //if (string.IsNullOrEmpty(data.PaymentTerm))
+                //    errorResult.Add(count++, ("PaymentTerm", $"PaymentTerm is mandatory"));
 
 
                 if (string.IsNullOrEmpty(data.InvoiceLineNumber))
@@ -128,6 +128,18 @@ namespace CommonHelper
 
                 if (string.IsNullOrEmpty(data.RecoverableTaxGLAccountNumber))
                     errorResult.Add(count++, ("RecoverableTaxGLAccountNumber", $"RecoverableTaxGLAccountNumber is mandatory"));
+
+                if (string.IsNullOrEmpty(data.BuyerName))
+                    errorResult.Add(count++, ("Buyer Name", $"Buyer Name is mandatory"));
+
+                if (string.IsNullOrEmpty(data.BuyerAddress))
+                    errorResult.Add(count++, ("Buyer Address", $"Buyer Address is mandatory"));
+
+                if (string.IsNullOrEmpty(data.BuyerVATRegistrationNumber))
+                    errorResult.Add(count++, ("BuyerVATRegistrationNumber", $"BuyerVATRegistrationNumber is mandatory"));
+
+                if (string.IsNullOrEmpty(data.BuyerVATGroupRegistrationNumber))
+                    errorResult.Add(count++, ("BuyerVATGroupRegistrationNumber", $"BuyerVATGroupRegistrationNumber is mandatory"));
             }
             return errorResult;
 

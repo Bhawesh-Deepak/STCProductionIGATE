@@ -60,5 +60,8 @@ namespace STCAPI.Core.Entities.VATDetailUpload
         public string CompanyName { get; set; }
         public DateTime Period { get; set; }
         public decimal SARTaxableAmount { get; set; }
+        public string CustomerVATGroupRegistrationNumber { get; set; }
+        public string CustomerType { get; set; }
+        public string ProductServiceGoodType { get; set; }
     }
 }

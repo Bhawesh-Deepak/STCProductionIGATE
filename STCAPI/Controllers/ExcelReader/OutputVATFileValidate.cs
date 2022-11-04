@@ -165,6 +165,9 @@ namespace STCAPI.Controllers.ExcelReader
                             model.QRCode = Convert.ToString(inputVatInvoiceDetail.Rows[i][47]);
                             model.PreviousInvoiceNoteHash = Convert.ToString(inputVatInvoiceDetail.Rows[i][48]);
                             model.InvoiceTamperResistantCounterValue = Convert.ToString(inputVatInvoiceDetail.Rows[i][49]);
+                            model.CustomerVATGroupRegistrationNumber = Convert.ToString(inputVatInvoiceDetail.Rows[i][50]);
+                            model.CustomerType = Convert.ToString(inputVatInvoiceDetail.Rows[i][51]);
+                            model.ProductServiceGoodType = Convert.ToString(inputVatInvoiceDetail.Rows[i][51]);
                             row++;
                             models.Add(model);
                         }

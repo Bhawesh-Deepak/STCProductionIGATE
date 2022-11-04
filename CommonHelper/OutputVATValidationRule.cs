@@ -87,6 +87,15 @@ namespace CommonHelper
                 if (string.IsNullOrEmpty(data.OriginalInvoice))
                     errorResult.Add(count++, ("OriginalInvoice", $"OriginalInvoice is mandatory"));
 
+                if (string.IsNullOrEmpty(data.ProductServiceGoodType))
+                    errorResult.Add(count++, ("ProductServiceGoodType", $"ProductServiceGoodType is mandatory"));
+
+                if (string.IsNullOrEmpty(data.CustomerType))
+                    errorResult.Add(count++, ("CustomerType", $"CustomerType is mandatory"));
+
+                if (string.IsNullOrEmpty(data.CustomerVATGroupRegistrationNumber))
+                    errorResult.Add(count++, ("CustomerVATGroupRegistrationNumber", $"CustomerVATGroupRegistrationNumber is mandatory"));
+
 
             }
             return errorResult;

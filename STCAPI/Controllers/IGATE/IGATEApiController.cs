@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Magnum.FileSystem;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using STAAPI.Infrastructure.Repository.GenericRepository;
@@ -8,6 +10,7 @@ using STCAPI.ErrorLogService;
 using STCAPI.Model;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -111,7 +114,6 @@ namespace STCAPI.Controllers.IGATE
         [HttpPost]
         [Produces("application/json")]
         [Consumes("application/json")]
-
         public async Task<IActionResult> VATRequestDetails(RequestModel model, [FromHeader] string token)
         {
             try
@@ -139,6 +141,42 @@ namespace STCAPI.Controllers.IGATE
                           nameof(VATRequestDetails), ex.Message, ex.ToString());
                 return BadRequest("Something wents wrong.");
             }
+        }
+
+        [HttpPost]
+        [Produces("application/json")]
+        public async Task<IActionResult> UploadAttachment([FromForm] IGATEAttachmentModel attachment)
+        {
+            double imageSize = Double.Parse("0");
+            var attachmentModels = new List<Attachment>();
+            bool isLargeImage = false;
+
+            attachment.Attachment.ForEach(data =>
+            {
+                imageSize = calcBase64SizeInKBytes(ImageToByteArray(data).ToString());
+                //if (imageSize / 1000 <= 5)
+                //{
+
+
+                //}
+                //else {
+                //    isLargeImage = true;
+                //}
+
+                var model = new Attachment()
+                {
+                    mimeType = data.ContentType,
+                    fileName = data.FileName,
+                    fileContents = ImageToByteArray(data).ToString()
+                };
+
+                attachmentModels.Add(model);
+
+            });
+            //if (isLargeImage) {
+            //    return BadRequest($"Image size is too large for image more than 5 mb !");
+            //}
+            return Ok(attachmentModels);
         }
 
 
@@ -220,7 +258,7 @@ namespace STCAPI.Controllers.IGATE
                     model.ApproverEmail = data.ApproverEmail;
                     model.PendingwithEmail = data.PendingwithEmail;
                     model.RequestStatus = data.RequestStatus;
-                    model.SentDate= data.CreatedDate;
+                    model.SentDate = data.CreatedDate;
                     models.Add(model);
                 });
                 return Ok(models);
@@ -248,12 +286,48 @@ namespace STCAPI.Controllers.IGATE
                 //client_id = "3a1bc4a8-e01a-4b57-bb2b-3ead05057c2e",
                 //client_secret = "fbe24031-ecff-411b-b123-b37148de5543",
                 //grant_type = "client_credentials"
-                client_id= _IConfiguration.GetSection("IGATE:client_id").Value,
-                client_secret= _IConfiguration.GetSection("IGATE:client_sceretKey").Value,
-                grant_type= _IConfiguration.GetSection("IGATE:grant_type").Value
+                client_id = _IConfiguration.GetSection("IGATE:client_id").Value,
+                client_secret = _IConfiguration.GetSection("IGATE:client_sceretKey").Value,
+                grant_type = _IConfiguration.GetSection("IGATE:grant_type").Value
             };
         }
 
+
+        private string ImageToByteArray(IFormFile file)
+        {
+            if (file.Length > 0)
+            {
+                using (var ms = new MemoryStream())
+                {
+                    file.CopyTo(ms);
+                    var fileArray = ms.ToArray();
+                    return Convert.ToBase64String(fileArray);
+                }
+            }
+
+            return null;
+
+
+        }
+
+        private Double calcBase64SizeInKBytes(String base64String)
+        {
+            Double result = -1.0;
+            if (!string.IsNullOrEmpty(base64String))
+            {
+                int padding = 0;
+                if (base64String.EndsWith("=="))
+                {
+                    padding = 2;
+                }
+                else
+                {
+                    if (base64String.EndsWith("=")) padding = 1;
+                }
+                result = Convert.ToDouble((Math.Ceiling(Convert.ToDecimal(base64String.Length / 4) * 3)) - padding);
+            }
+            return result / 1000;
+        }
         #endregion
     }
 }
