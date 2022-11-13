@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace STCAPI.Controllers.Report
 {
     /// <summary>
-    /// 
+    ///  STC VAT Report details
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
@@ -23,7 +23,7 @@ namespace STCAPI.Controllers.Report
         private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
 
         /// <summary>
-        /// 
+        ///  Inject required service to the constructors
         /// </summary>
         /// <param name="iSTCVATReportItemRepository"></param>
         /// <param name="iErrorLogRepository"></param>
@@ -34,7 +34,7 @@ namespace STCAPI.Controllers.Report
         }
 
         /// <summary>
-        /// 
+        /// Create VAT Reports
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
@@ -64,7 +64,7 @@ namespace STCAPI.Controllers.Report
         }
 
         /// <summary>
-        /// 
+        ///  Get VAT Reports Details
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -87,7 +87,7 @@ namespace STCAPI.Controllers.Report
         }
 
         /// <summary>
-        /// 
+        ///  Get VAT Report details By Id
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
@@ -112,7 +112,7 @@ namespace STCAPI.Controllers.Report
         }
 
         /// <summary>
-        /// 
+        ///  Update VAT Report Details
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
@@ -143,7 +143,7 @@ namespace STCAPI.Controllers.Report
 
 
         /// <summary>
-        /// 
+        ///  Deactivate VAT Report Details
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>

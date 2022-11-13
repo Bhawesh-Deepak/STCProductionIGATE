@@ -44,7 +44,7 @@ namespace STCAPI.Controllers.UserManagement
         }
 
         /// <summary>
-        /// 
+        ///  Create custom period for subsidries
         /// </summary>
         /// <param name="year"></param>
         /// <returns></returns>

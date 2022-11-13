@@ -275,7 +275,7 @@ namespace STCAPI.Controllers.UserManagement
         }
 
         /// <summary>
-        /// 
+        ///  Get Company Details by Company User Mappings
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>

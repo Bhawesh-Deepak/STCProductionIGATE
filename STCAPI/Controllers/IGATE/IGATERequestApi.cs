@@ -92,7 +92,7 @@ namespace STCAPI.Controllers.IGATE
         }
 
         /// <summary>
-        /// 
+        ///  Get I GATE Request Details
         /// </summary>
         /// <param name="FormId"></param>
         /// <returns></returns>
@@ -129,7 +129,7 @@ namespace STCAPI.Controllers.IGATE
 
         }
         /// <summary>
-        /// 
+        ///  Get I GATE Request Response details
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -200,7 +200,7 @@ namespace STCAPI.Controllers.IGATE
         }
 
         /// <summary>
-        /// 
+        ///  Check previous I GATE request for month and Year
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>

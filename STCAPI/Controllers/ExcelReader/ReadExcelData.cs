@@ -46,6 +46,22 @@ namespace STCAPI.Controllers.ExcelReader
         private readonly IGenericRepository<PeriodMaster, int> _IPeriodMasterRepository;
 
         private readonly ILogger<ReadExcelData> _logger;
+
+        /// <summary>
+        /// Inject required service to constructor details
+        /// </summary>
+        /// <param name="hostingEnvironment"></param>
+        /// <param name="inputVATDatFileRepository"></param>
+        /// <param name="vatTrialBalanceRepository"></param>
+        /// <param name="stcVatOutModelRepo"></param>
+        /// <param name="vatReturnModelRepository"></param>
+        /// <param name="uploadInvoiceRepo"></param>
+        /// <param name="logger"></param>
+        /// <param name="userSubsidryMapping"></param>
+        /// <param name="subsidryInvoiceAttachmentRepository"></param>
+        /// <param name="errorLogModelRepo"></param>
+        /// <param name="dapperRepository"></param>
+        /// <param name="periodRepository"></param>
         public ReadExcelData(IHostingEnvironment hostingEnvironment,
             IGenericRepository<InputVATDataFile, int> inputVATDatFileRepository,
             IGenericRepository<VATTrailBalanceModel, int> vatTrialBalanceRepository,
@@ -412,7 +428,7 @@ namespace STCAPI.Controllers.ExcelReader
         }
 
         /// <summary>
-        /// 
+        ///  Get Subsidry Attachement details
         /// </summary>
         /// <param name="invoiceId"></param>
         /// <returns></returns>
@@ -449,7 +465,7 @@ namespace STCAPI.Controllers.ExcelReader
         }
 
         /// <summary>
-        /// 
+        /// Update subsridry attachments 
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace STCAPI.Controllers.UserManagement
 {
     /// <summary>
-    /// 
+    /// Admin Access and configuration details
     /// </summary>
     [Route("api/[controller]/[action]")]
     [ApiController]
@@ -23,7 +23,7 @@ namespace STCAPI.Controllers.UserManagement
         private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
 
         /// <summary>
-        /// 
+        /// Inject required service to constructor
         /// </summary>
         /// <param name="iAdminAccessRepository"></param>
         /// <param name="errorLogRepository"></param>
@@ -35,7 +35,7 @@ namespace STCAPI.Controllers.UserManagement
         }
 
         /// <summary>
-        /// 
+        ///  Get User Admin access Details based on UserId
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -61,7 +61,7 @@ namespace STCAPI.Controllers.UserManagement
         }
 
         /// <summary>
-        /// 
+        /// Create multiple user admin access 
         /// </summary>
         /// <param name="models"></param>
         /// <returns></returns>
@@ -105,7 +105,7 @@ namespace STCAPI.Controllers.UserManagement
         }
 
         /// <summary>
-        /// 
+        /// Get User Permission details
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -129,7 +129,7 @@ namespace STCAPI.Controllers.UserManagement
         }
 
         /// <summary>
-        /// 
+        /// Delete previous admin access details
         /// </summary>
         /// <returns></returns>
         private async Task<bool> DeletePreviousAdminAccess(List<AdminAccessVm> models)

@@ -32,7 +32,7 @@ namespace STCAPI.Controllers.QueryValidation
         }
 
         /// <summary>
-        /// 
+        ///  Create Dynamic Sql Query Details
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>

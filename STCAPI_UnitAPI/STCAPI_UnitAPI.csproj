@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\STAAPI.Infrastructure.Repository\STAAPI.Infrastructure.Repository.csproj" />
     <ProjectReference Include="..\STCAPI.Infrastructure.Implementation\STCAPI.Infrastructure.Implementation.csproj" />
+    <ProjectReference Include="..\STCAPI\STCAPI.csproj" />
   </ItemGroup>
 
 </Project>

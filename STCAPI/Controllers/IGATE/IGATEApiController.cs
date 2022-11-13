@@ -142,7 +142,11 @@ namespace STCAPI.Controllers.IGATE
                 return BadRequest("Something wents wrong.");
             }
         }
-
+        /// <summary>
+        /// Upload attachment and get the response with MIME Type file name and file content details
+        /// </summary>
+        /// <param name="attachment"></param>
+        /// <returns></returns>
         [HttpPost]
         [Produces("application/json")]
         public async Task<IActionResult> UploadAttachment([FromForm] IGATEAttachmentModel attachment)

@@ -40,7 +40,7 @@ namespace STCAPI.Controllers.ExcelReader
         }
 
         /// <summary>
-        /// 
+        ///  Validate VAT Invoice File Details
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>

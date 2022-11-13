@@ -3,17 +3,26 @@ using System.Collections.Generic;
 
 namespace STCAPI.Model
 {
+    /// <summary>
+    /// Request Model
+    /// </summary>
     public class RequestModel
     {
         public BpmRequest bpmRequest { get; set; }
     }
 
+    /// <summary>
+    /// Request Details
+    /// </summary>
     public class Detail
     {
         public string key { get; set; }
         public string value { get; set; }
     }
 
+    /// <summary>
+    /// Request 
+    /// </summary>
     public class Request
     {
         public List<Detail> details { get; set; }

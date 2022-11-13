@@ -88,7 +88,7 @@ namespace STCAPI.Controllers.RequestDetails
         }
 
         /// <summary>
-        /// 
+        ///  Get New Request compelete Details 
         /// </summary>
         /// <returns></returns>
         [HttpGet]
