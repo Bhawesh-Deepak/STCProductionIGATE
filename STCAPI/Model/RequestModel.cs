@@ -33,7 +33,7 @@ namespace STCAPI.Model
         public string requesterEmail { get; set; }
         public string serviceCode { get; set; }
         public Request request { get; set; }
-        public List<Attachment> attachments { get; set; }
+        public AttachmentModel attachmentModel { get; set; }
     }
 
     public class Attachment
@@ -41,5 +41,12 @@ namespace STCAPI.Model
         public string fileName { get; set; }
         public string mimeType { get; set; }
         public string fileContents { get; set; }
+    }
+
+    public class AttachmentModel
+    {
+        public string fileName { get; set; }
+        public string mimeType { get; set; }
+        public string attachmentId { get; set; }
     }
 }

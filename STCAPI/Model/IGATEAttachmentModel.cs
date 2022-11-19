@@ -5,6 +5,6 @@ namespace STCAPI.Model
 {
     public class IGATEAttachmentModel
     {
-        public List<IFormFile> Attachment { get; set; }
+        public IFormFile Attachment { get; set; }
     }
 }

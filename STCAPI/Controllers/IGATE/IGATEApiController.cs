@@ -1,4 +1,6 @@
-﻿using Magnum.FileSystem;
+﻿using CommonHelper;
+using Magnum.FileSystem;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -6,6 +8,7 @@ using Newtonsoft.Json;
 using STAAPI.Infrastructure.Repository.GenericRepository;
 using STCAPI.Core.Entities.IGATE;
 using STCAPI.Core.Entities.Logger;
+using STCAPI.Core.ViewModel.ResponseModel;
 using STCAPI.ErrorLogService;
 using STCAPI.Model;
 using System;
@@ -33,6 +36,8 @@ namespace STCAPI.Controllers.IGATE
         private readonly IGenericRepository<ErrorLogModel, int> _IErrorLogRepository;
         private readonly IConfiguration _IConfiguration;
         private readonly IGenericRepository<IGATERequestDetails, int> _IGateRequestRepository;
+        private readonly IGenericRepository<IGATEUploadDocument, int> _IGateUploadDocumentRepository;
+        private readonly IHostingEnvironment _IHostingEnviroment;
 
 
         /// <summary>
@@ -40,12 +45,16 @@ namespace STCAPI.Controllers.IGATE
         /// </summary>
         /// <param name="vatRequestUpdateRepo"></param>
         public IGATEApiController(IGenericRepository<VATRequestUpdate, int> vatRequestUpdateRepo,
-            IGenericRepository<ErrorLogModel, int> errorLogRepository, IConfiguration configuration, IGenericRepository<IGATERequestDetails, int> iGateRequestRepository)
+            IGenericRepository<ErrorLogModel, int> errorLogRepository,
+            IConfiguration configuration, IGenericRepository<IGATERequestDetails, int> iGateRequestRepository,
+            IGenericRepository<IGATEUploadDocument, int> iGateUploadDocumentRepository, IHostingEnvironment hostingEnvironment)
         {
             _IVATRequestUpdateRepo = vatRequestUpdateRepo;
             _IErrorLogRepository = errorLogRepository;
             _IConfiguration = configuration;
             _IGateRequestRepository = iGateRequestRepository;
+            _IGateUploadDocumentRepository = iGateUploadDocumentRepository;
+            _IHostingEnviroment = hostingEnvironment;
         }
         /// <summary>
         /// Authenticate Response From IGATE API
@@ -149,38 +158,72 @@ namespace STCAPI.Controllers.IGATE
         /// <returns></returns>
         [HttpPost]
         [Produces("application/json")]
-        public async Task<IActionResult> UploadAttachment([FromForm] IGATEAttachmentModel attachment)
+        public async Task<IActionResult> UploadAttachment([FromForm] IGATEAttachmentModel attachment, [FromQuery] string token)
         {
-            double imageSize = Double.Parse("0");
-            var attachmentModels = new List<Attachment>();
-            bool isLargeImage = false;
 
-            attachment.Attachment.ForEach(data =>
+            try
             {
-                imageSize = calcBase64SizeInKBytes(ImageToByteArray(data).ToString());
-                //if (imageSize / 1000 <= 5)
-                //{
-
-
-                //}
-                //else {
-                //    isLargeImage = true;
-                //}
+                double imageSize = Double.Parse("0");
+                string responseDetails = string.Empty;
+                imageSize = calcBase64SizeInKBytes(ImageToByteArray(attachment.Attachment).ToString());
 
                 var model = new Attachment()
                 {
-                    mimeType = data.ContentType,
-                    fileName = data.FileName,
-                    fileContents = ImageToByteArray(data).ToString()
+                    mimeType = attachment.Attachment.ContentType,
+                    fileName = attachment.Attachment.FileName,
+                    fileContents = ImageToByteArray(attachment.Attachment).ToString()
                 };
 
-                attachmentModels.Add(model);
+                // request.AddHeader("Authorization", "Bearer b1cf8950e24b44fa9de0ee95e3006a89");
 
-            });
-            //if (isLargeImage) {
-            //    return BadRequest($"Image size is too large for image more than 5 mb !");
-            //}
-            return Ok(attachmentModels);
+                using HttpClient client = new HttpClient { BaseAddress = new Uri("https://10.21.13.29:9016/") };
+                //client.DefaultRequestHeaders.Authorization=
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var stringContent = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
+                var response = client.PostAsync("esb/dms/1.0/en/upload", stringContent).Result;
+
+                var documentPath = await new BlobHelper().UploadDocument(attachment.Attachment, _IHostingEnviroment);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    responseDetails = await response.Content.ReadAsStringAsync();
+                    var responseData = JsonConvert.DeserializeObject<IGATEDocumentResponseVm>(responseDetails);
+
+                    var documentResponse = new AttachmentModel()
+                    {
+                        mimeType = model.mimeType,
+                        fileName = model.fileName,
+                        attachmentId = responseData.response.documentID
+                    };
+
+                    var dbResponse = await _IGateUploadDocumentRepository.CreateEntity(new List<IGATEUploadDocument>() {
+                             new IGATEUploadDocument(){
+                                IsDeleted = true,
+                                IsActive = true,
+                                DocumentId= documentResponse.attachmentId,
+                                CreatedBy="Admin",
+                                CreatedDate=DateTime.Now,
+                                DocumentPath=documentPath
+                             }
+                }.ToArray());
+
+                    return Ok(documentResponse);
+                }
+                else
+                {
+                    await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(IGATEApiController),
+                             nameof(UploadAttachment), response.StatusCode.ToString(), response.Content.ToString());
+
+                    return BadRequest("Something wents wrong.");
+                }
+            }
+            catch (Exception ex)
+            {
+                await ErrorLogServiceImplementation.LogError(_IErrorLogRepository, nameof(IGATEApiController),
+              nameof(UploadAttachment), ex.Message, ex.ToString());
+                return BadRequest("Something wents wrong.");
+            }
+
         }
 
 
@@ -218,6 +261,8 @@ namespace STCAPI.Controllers.IGATE
                 dbModel.CreatedDate = DateTime.Now;
                 dbModel.UpdatedDate = DateTime.Now;
                 dbModel.UpdatedBy = "Admin";
+                dbModel.DocumentId = model.DocumentId;
+
 
                 var response = await _IVATRequestUpdateRepo.CreateEntity(new List<VATRequestUpdate>() { dbModel }.ToArray());
                 return Ok(new { message = "success" });
@@ -274,6 +319,24 @@ namespace STCAPI.Controllers.IGATE
 
                 return BadRequest(ex.Message);
             }
+
+        }
+
+        [HttpGet]
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        public async Task<IActionResult> DownloadIGATEDocument(string formId)
+        {
+            var iGateResponse = await _IVATRequestUpdateRepo.GetAllEntities(x => x.FormId.Trim().ToLower() == formId.Trim().ToLower());
+            if (iGateResponse.TEntities.Any())
+            {
+                var documentResponse = await _IGateUploadDocumentRepository.GetAllEntities(x => x.DocumentId.Trim().ToLower() == iGateResponse.TEntities.First().DocumentId.Trim().ToLower());
+                if (documentResponse.TEntities.Any())
+                {
+                    return Ok(documentResponse.TEntities.First().DocumentPath);
+                }
+            }
+            return BadRequest();
 
         }
 

@@ -11,5 +11,6 @@ namespace STCAPI.Model
         public string PendingwithEmail { get; set; }
         public string RequestStatus { get; set; }
         public DateTime SentDate { get; set; }
+        public string DocumentId { get; set; }
     }
 }

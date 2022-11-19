@@ -84,5 +84,6 @@ namespace STCAPI.Core.Entities.Context
         public virtual DbSet<IGATERequestDetails> IGATERequestDetails { get; set; }
 
         public virtual DbSet<STCVATReportItem> STCVATReportItems { get; set; }
+        public virtual DbSet<IGATEUploadDocument> IGATEUploadDocuments { get; set; }
     }
 }

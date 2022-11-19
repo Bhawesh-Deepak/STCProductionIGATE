@@ -13,5 +13,6 @@ namespace STCAPI.Core.Entities.IGATE
         public string PendingwithEmail { get; set; }
         public string RequestStatus { get; set; }
         public string AssignedToEmail { get; set; }
+        public string DocumentId { get; set; }
     }
 }
